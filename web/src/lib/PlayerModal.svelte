@@ -10,10 +10,14 @@
   let failed = $state(false);
   let triedProxy = false;
   let downloading = $state(false);
+  // Orientasi asli dari metadata video (hint dari API kadang salah buat video landscape).
+  let natural = $state<boolean | null>(null);
+  const vertical = $derived(natural ?? t?.vertical ?? t?.platform === 'tiktok');
 
   $effect(() => {
     const cur = ui.player;
     src = null;
+    natural = null;
     failed = false;
     triedProxy = false;
     if (!cur || cur.platform !== 'tiktok') return;
@@ -71,7 +75,7 @@
 
 {#if t}
   <div class="backdrop" role="presentation" onclick={(e) => e.target === e.currentTarget && close()}>
-    <div class="sheet" class:vertical={t.vertical ?? t.platform === 'tiktok'} role="dialog" aria-modal="true" aria-label="Preview video">
+    <div class="sheet" class:vertical role="dialog" aria-modal="true" aria-label="Preview video">
       <div class="stage">
         {#if t.platform === 'youtube'}
           <iframe
@@ -89,7 +93,19 @@
           ></iframe>
         {:else if src}
           <!-- svelte-ignore a11y_media_has_caption -->
-          <video {src} autoplay loop playsinline controls {muted} onerror={onErr}></video>
+          <video
+            {src}
+            autoplay
+            loop
+            playsinline
+            controls
+            {muted}
+            onerror={onErr}
+            onloadedmetadata={(e) => {
+              const v = e.currentTarget;
+              if (v.videoWidth && v.videoHeight) natural = v.videoHeight >= v.videoWidth;
+            }}
+          ></video>
         {:else}
           <div class="loading"><span class="spin"></span></div>
         {/if}

@@ -13,3 +13,4 @@ venv/
 feed.json
 downloads/
 .DS_Store
+.vercel
