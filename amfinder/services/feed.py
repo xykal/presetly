@@ -1,4 +1,4 @@
-"""Feed preset hasil crawler GitHub Actions (feed.json di branch `data`)."""
+"""Feed preset: feed.json hasil crawler (branch `data`), fallback ke scan cepat di server."""
 
 import threading
 import time
@@ -9,34 +9,59 @@ from ..config import FEED_URL, HTTP_TIMEOUT
 from ..sources import tiktok
 
 _LOCK = threading.Lock()
-_CACHE: dict = {"at": 0.0, "data": None}
-_EMPTY = {"updated": None, "items": []}
+_BUILD_LOCK = threading.Lock()
+_REMOTE: dict = {"at": 0.0, "data": None}
+_LIVE: dict = {"at": 0.0, "data": None}
+_EMPTY = {"updated": None, "mode": "empty", "items": []}
+LIVE_TTL = 1800
 
 
-def get_feed(max_age: int = 600) -> dict:
+def remote_feed(max_age: int = 600) -> dict | None:
     now = time.time()
     with _LOCK:
-        fresh = _CACHE["data"] is not None and now - _CACHE["at"] < max_age
-        if fresh:
-            return _CACHE["data"]
+        if _REMOTE["at"] and now - _REMOTE["at"] < max_age:
+            return _REMOTE["data"]
     try:
         r = requests.get(FEED_URL, timeout=HTTP_TIMEOUT)
         data = r.json() if r.ok else None
     except (requests.RequestException, ValueError):
         data = None
+    ok = isinstance(data, dict) and isinstance(data.get("items"), list) and bool(data["items"])
     with _LOCK:
-        if isinstance(data, dict) and isinstance(data.get("items"), list):
-            _CACHE.update(at=now, data=data)
-        elif _CACHE["data"] is None:
-            _CACHE["at"] = now - max_age + 60  # gagal: coba lagi semenit lagi, jangan spam
-        return _CACHE["data"] or _EMPTY
+        _REMOTE.update(at=now, data=data if ok else None)
+        return _REMOTE["data"]
+
+
+def live_feed() -> dict:
+    """Scan cepat di server. Satu build per instance tiap 30 menit (lock biar gak dobel)."""
+    with _LOCK:
+        if _LIVE["data"] and time.time() - _LIVE["at"] < LIVE_TTL:
+            return _LIVE["data"]
+    with _BUILD_LOCK:
+        with _LOCK:
+            if _LIVE["data"] and time.time() - _LIVE["at"] < LIVE_TTL:
+                return _LIVE["data"]
+        from ..crawler import quick_feed
+
+        try:
+            data = quick_feed()
+        except Exception:
+            data = None
+        with _LOCK:
+            if data and data.get("items"):
+                _LIVE.update(at=time.time(), data=data)
+            return _LIVE["data"] or _EMPTY
+
+
+def get_feed() -> dict:
+    return remote_feed() or live_feed()
 
 
 def videos_for_tag(tag: str, limit: int) -> list[dict]:
-    """Video TikTok yang ditemuin crawler lewat #tag (cuma yang ada preset aktifnya)."""
+    """Video TikTok yang ditemuin crawler lewat #tag (cuma dari feed crawler, gak mancing scan live)."""
     want = "#" + tag.lower()
     out, seen = [], set()
-    for preset in get_feed().get("items") or []:
+    for preset in (remote_feed() or {}).get("items") or []:
         for s in preset.get("sources") or []:
             vid = str(s.get("id") or "")
             if s.get("platform") != "tiktok" or (s.get("via") or "").lower() != want or not vid or vid in seen:

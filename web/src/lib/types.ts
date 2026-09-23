@@ -113,6 +113,7 @@ export interface Preset {
 
 export interface Feed {
   updated: number | null;
+  mode?: 'crawler' | 'live' | 'empty';
   tags?: string[];
   items: Preset[];
 }

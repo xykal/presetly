@@ -59,7 +59,11 @@
   <div class="hero">
     <h1>Jelajah preset</h1>
     <p class="muted">
-      Dikumpulin otomatis dari hashtag TikTok & YouTube tiap 6 jam, cuma preset yang linknya masih aktif.
+      {#if feed?.mode === 'live'}
+        Hasil scan cepat dari YouTube terbaru & hashtag teratas. Cuma preset yang linknya masih aktif.
+      {:else}
+        Dikumpulin otomatis dari hashtag TikTok & YouTube tiap 6 jam, cuma preset yang linknya masih aktif.
+      {/if}
       {#if feed?.updated}<span class="upd"><Icon name="clock" size={13} />update {timeAgo(feed.updated)}</span>{/if}
     </p>
   </div>
@@ -83,6 +87,7 @@
   </div>
 
   {#if loading}
+    <div class="muted small-note">Lagi ngumpulin preset... pertama kali bisa sampe 20 detik.</div>
     <div class="grid">
       {#each Array(8) as _, i (i)}<div class="card skc"><div class="skeleton a"></div><div class="skeleton b"></div><div class="skeleton c"></div></div>{/each}
     </div>
@@ -163,7 +168,8 @@
     gap: 6px;
     flex-wrap: wrap;
   }
-  .count {
+  .count,
+  .small-note {
     font-size: 12.5px;
   }
   .grid {

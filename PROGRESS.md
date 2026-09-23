@@ -71,7 +71,20 @@ preview video bisa diputer, hosting gratis (Vercel / Cloudflare).
 - Web: https://am-preset-finder.vercel.app (Vercel Git integration, auto-deploy dari `main`).
 - Feed: https://raw.githubusercontent.com/xykalnotkel/am-preset-finder/data/feed.json
 
+**Update (sesi sama, setelah push):**
+- Semua REST API GitHub buat user `xykalnotkel` balik "API rate limit exceeded" (bucket 60/jam, kayak anonim) dan
+  profil + semua repo xykalnotkel 404 buat pengunjung anonim (termasuk repo lama kayak XyDesk & fotolivemaker).
+  githubstatus lagi ada incident "API Requests" (investigating). Git push/ls-remote pakai token tetap jalan
+  (commit 5a23a82 udah di main). Konsekuensi: raw.githubusercontent feed bisa gak kebaca -> ditambahin fallback.
+- `quick_feed()` + `/api/feed` fallback: kalau feed crawler gak kebaca, server scan cepat YouTube terbaru + hashtag
+  teratas (embed) -> tes lokal 84 preset aktif dalam 15.8 detik. Cache 30 menit per instance + CDN s-maxage 1800.
+- Vercel GitHub App belum ke-install di akun GitHub ini (API: "install the GitHub integration first"),
+  jadi deploy lewat Vercel CLI (`vercel deploy --prod`). Auto-deploy dari push butuh Kall install app sekali.
+
 **Next Step:**
+- Kall: install https://github.com/apps/vercel ke repo `am-preset-finder` biar auto-deploy tiap push.
+- Kall: cek kenapa akun GitHub 404 buat publik (kemungkinan flag/limit dari incident atau aktivitas API berat) -
+  kalau udah normal, workflow CI + Crawl jalan sendiri.
 - Tambah sumber Instagram Reels (butuh riset akses publik 2026).
 - Notifikasi preset baru dari creator favorit (Web Push / OneSignal XyCloudStore? perlu app terpisah biar key gak ketuker).
 - Kalau traffic naik: pindah cache link ke Vercel KV / Upstash biar hasil cek dishare antar instance.

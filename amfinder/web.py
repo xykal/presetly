@@ -201,8 +201,14 @@ def api_yt_stream(vid):
 @app.get("/api/feed")
 def api_feed():
     """Feed preset hasil crawler GitHub Actions (branch `data`). Cache 10 menit per instance + CDN."""
-    resp = jsonify(feed.get_feed())
-    resp.headers["Cache-Control"] = "public, max-age=120, s-maxage=300, stale-while-revalidate=600"
+    data = feed.get_feed()
+    resp = jsonify(data)
+    if data.get("mode") == "live":
+        resp.headers["Cache-Control"] = "public, max-age=300, s-maxage=1800, stale-while-revalidate=86400"
+    elif data.get("items"):
+        resp.headers["Cache-Control"] = "public, max-age=120, s-maxage=300, stale-while-revalidate=3600"
+    else:
+        resp.headers["Cache-Control"] = "no-store"
     return resp
 
 
