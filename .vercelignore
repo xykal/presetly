@@ -1,0 +1,12 @@
+node_modules
+dist
+tests
+docs
+.github
+.cursor
+*.md
+!README.md
+__pycache__
+.pytest_cache
+.ruff_cache
+feed.json

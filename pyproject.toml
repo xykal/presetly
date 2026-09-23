@@ -1,0 +1,36 @@
+[project]
+name = "am-preset-finder"
+version = "2.0.0"
+description = "Cari link preset Alight Motion dari YouTube & TikTok. Built-in XyVerse."
+requires-python = ">=3.11,<3.14"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Kall (xykalnotkel)", email = "xycdigital@gmail.com" }]
+# Sama persis sama requirements.txt (Vercel bisa baca salah satunya).
+dependencies = [
+  "flask>=3.1",
+  "requests>=2.32",
+  "yt-dlp[default]>=2026.8.19",
+  "segno>=1.6",
+]
+
+[project.optional-dependencies]
+local = ["playwright>=1.55"]
+dev = ["ruff>=0.16", "pytest>=9"]
+
+[tool.ruff]
+line-length = 130
+target-version = "py311"
+extend-exclude = ["node_modules", "dist", "web"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S"]
+# S603/S607: subprocess gak dipake; S311: random bukan buat kripto
+ignore = ["S101", "S311", "B008", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S", "E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

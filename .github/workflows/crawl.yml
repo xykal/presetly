@@ -1,0 +1,73 @@
+name: Crawl feed preset
+
+# Kenapa di Actions: TikTok nge-block IP datacenter AWS (Vercel) buat API hashtag,
+# sedangkan runner GitHub (Azure) masih lolos. Hasilnya dipush ke branch `data`
+# dan dibaca web lewat raw.githubusercontent.com (gratis, CDN, CORS *).
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Hashtag (pisah koma)'
+        required: false
+        default: 'presetalightmotion,presetam,presetdibawah5mb,presetxml,alightmotionpreset,presetjedagjedug'
+
+concurrency:
+  group: crawl
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Ambil feed sebelumnya (biar preset lama tetap kesimpen)
+        run: |
+          git fetch origin data --depth=1 2>/dev/null && git show FETCH_HEAD:feed.json > feed.json || echo '{"items":[]}' > feed.json
+          python3 -c "import json;print('feed lama:', len(json.load(open('feed.json'))['items']), 'preset')"
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-local.txt
+
+      - name: Install
+        run: |
+          pip install -r requirements-local.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Crawl
+        env:
+          TAGS: ${{ github.event.inputs.tags || 'presetalightmotion,presetam,presetdibawah5mb,presetxml,alightmotionpreset,presetjedagjedug' }}
+        run: python -m amfinder crawl --out feed.json --tags "$TAGS" --per-tag 30
+
+      - name: Validasi feed
+        run: |
+          python3 - <<'EOF'
+          import json, sys
+          d = json.load(open("feed.json"))
+          n = len(d.get("items", []))
+          print("feed baru:", n, "preset")
+          if n == 0:
+              sys.exit("feed kosong, gak di-push biar data lama gak ketimpa")
+          EOF
+
+      - name: Push ke branch data
+        run: |
+          mkdir -p /tmp/out && cp feed.json /tmp/out/feed.json
+          # Branch data cuma isi JSON: matiin auto-deploy Vercel buat branch ini.
+          echo '{"git":{"deploymentEnabled":false}}' > /tmp/out/vercel.json
+          cd /tmp/out
+          git init -q -b data
+          git config user.name "xykalnotkel"
+          git config user.email "xycdigital@gmail.com"
+          git add feed.json vercel.json
+          git commit -qm "chore(data): update feed $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" data
