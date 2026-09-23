@@ -24,7 +24,7 @@ Deskripsi, caption, komen pinned, sampai balasan creator dibaca otomatis. Tiap l
 | **Cek preset** | Nama, thumbnail, ukuran, jumlah project, status aktif/mati. Label **AM gratis bisa** (≤ 5 MB) vs **butuh premium**. Link XML (Drive/MediaFire/catbox) ikut ditampilin + nama filenya. |
 | **Preview video** | TikTok: hover / tap **Putar** buat preview inline (muted, loop), klik buat player penuh. YouTube: player embed resmi. |
 | **Download** | TikTok MP4 H.264 tanpa watermark. YouTube: cuma mode lokal (lihat [Keterbatasan](#keterbatasan)). |
-| **Jelajah** | Feed preset aktif hasil crawler otomatis tiap 6 jam dari hashtag TikTok + YouTube. |
+| **Jelajah** | Feed preset aktif: scan berkala YouTube terbaru + hashtag teratas di server (cache 30 menit), atau hasil crawler kalau dijalanin. |
 | **Koleksi** | Simpen preset favorit (disimpen di browser, gak perlu login). Export `.txt`. |
 | **Buka di AM** | Di HP langsung kebuka di Alight Motion. Di PC muncul QR buat discan pakai HP. |
 
@@ -36,7 +36,7 @@ Browser (Svelte 5 SPA, Vite)
    │  /api/scan   -> scan 3 video per request, 4 paralel (progress real-time, stateless)
    │  /api/feed   -> feed.json hasil crawler (cache CDN)
    ▼
-Vercel Function (Python 3.12 + Flask, region sin1)          GitHub Actions (cron tiap 6 jam)
+Vercel Function (Python 3.12 + Flask, region sin1)          Crawler opsional (manual / mesin sendiri)
    ├─ YouTube: yt-dlp flat (search/listing)                    ├─ Playwright scroll #hashtag TikTok
    │           + innertube /next (deskripsi + komentar)        ├─ scan + cek semua link preset
    ├─ TikTok : embed SSR, API komentar, yt-dlp listing         └─ push feed.json -> branch `data`
@@ -53,13 +53,15 @@ Vercel Function (Python 3.12 + Flask, region sin1)          GitHub Actions (cron
 | TikTok komentar, balasan, embed, oEmbed, listing profil | jalan | jalan |
 | TikTok `/api/challenge/item_list` (hashtag) | **body kosong**, bahkan pake headless Chromium | **jalan** (58-88 video/hashtag) |
 
-Jadi yang diblok dari cloud dipindah ke crawler GitHub Actions, hasilnya disajikan statis. Semuanya gratis: Vercel Hobby + GitHub Actions (repo publik) + raw.githubusercontent.
+Jadi hashtag lengkap cuma bisa dari IP non-datacenter: mode lokal, atau crawler opsional yang hasilnya disajikan statis. Tanpa crawler pun web tetap jalan: `/api/feed` otomatis fallback ke scan cepat di server. Semua gratis (Vercel Hobby).
+
+> Workflow `Crawl feed preset` sengaja **manual only** (tanpa cron). GitHub Additional Product Terms ngelarang runner hosted dipake buat aktivitas di luar production/testing/deployment project, dan crawling data berkala itu area abu-abu. Paling aman jalanin crawler di mesin sendiri lalu push `feed.json` ke branch `data`.
 
 ## Deploy sendiri (gratis)
 
 1. Fork repo ini.
 2. [vercel.com/new](https://vercel.com/new) -> import repo. Semua setting kebaca dari `vercel.json`, gak perlu env var.
-3. Tab **Actions** di GitHub -> enable workflow -> jalanin **Crawl feed preset** sekali (`Run workflow`) biar tab Jelajah langsung ada isinya.
+3. Opsional: generate feed lengkap (`python -m amfinder crawl --out feed.json` di mesin sendiri), push ke branch `data`. Tanpa ini tab Jelajah tetap keisi dari scan server.
 4. Kalau repo lu beda nama, set env `AMF_FEED_URL` di Vercel ke `https://raw.githubusercontent.com/<user>/<repo>/data/feed.json`.
 
 ## Jalanin lokal
@@ -86,7 +88,7 @@ python -m amfinder yt-channel @namachannel
 python -m amfinder tt-user @dan_newbie
 python -m amfinder tt-tag presetalightmotion -n 40
 python -m amfinder link https://vt.tiktok.com/xxxx/ https://alight.link/xxxx
-python -m amfinder crawl --out feed.json     # yang dijalanin GitHub Actions
+python -m amfinder crawl --out feed.json     # generate feed lengkap (butuh Playwright)
 ```
 Tambah `--json` buat output mentah.
 
@@ -118,7 +120,7 @@ tests/                pytest (parser, klasifikasi, API)
 
 ## Keterbatasan
 
-- **Hashtag TikTok di versi web cuma "lite"**: video dari feed crawler + video teratas dari embed. Hasil lengkap ada di tab Jelajah (diupdate tiap 6 jam) atau jalanin lokal.
+- **Hashtag TikTok di versi web cuma "lite"**: video dari feed crawler (kalau ada) + video teratas dari embed. Hasil lengkap: jalanin lokal.
 - **Download YouTube cuma di mode lokal.** YouTube minta verifikasi bot buat IP datacenter, dan bypass-nya butuh cookie akun (gak aman buat server publik).
 - Link di Linktree / web bio cuma ditampilin, gak ikut discan.
 - Link dari **komen penonton** ditandain kuning, bisa aja spam. Cek dulu sebelum dipake.

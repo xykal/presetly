@@ -121,7 +121,7 @@
       {#if liveTag}
         <span>Mode lokal: hashtag discan penuh pakai browser headless (20-60 detik).</span>
       {:else}
-        <span>TikTok nge-block server cloud buat halaman hashtag, jadi di sini cuma dapet video teratas. Buat hasil lengkap cek tab <b>Jelajah</b> (diupdate otomatis tiap 6 jam) atau pakai <b>Profil creator</b>.</span>
+        <span>TikTok nge-block server cloud buat halaman hashtag, jadi di sini cuma dapet video teratas. Buat hasil lebih banyak cek tab <b>Jelajah</b>, pakai <b>Profil creator</b>, atau jalanin versi lokal.</span>
       {/if}
     </div>
   {:else if conf.note}

@@ -74,8 +74,13 @@ preview video bisa diputer, hosting gratis (Vercel / Cloudflare).
 **Update (sesi sama, setelah push):**
 - Akun `xykalnotkel` kemungkinan besar lagi **di-flag GitHub**: profil + SEMUA repo (termasuk repo lama XyDesk,
   fotolivemaker) 404 buat pengunjung anonim, dan REST/GraphQL API akun ini dibatasi 60 request/jam (kayak anonim).
-  Git push via token tetap jalan (main = f245bec). Kemungkinan pemicu: auto-sync rules yang nge-push commit otomatis ke
-  59 repo sekaligus (semua repo ke-update 2026-09-22 dengan commit "chore: apply XyVerse absolute rules"). Belum pasti.
+  Git push via token tetap jalan (main = f245bec).
+  Timeline jujur: di awal sesi, github.com/xykalnotkel/XyDesk & fotolivemaker masih HTTP 200 buat anonim; jam 20:42 UTC
+  udah 404. Di rentang itu agent: ratusan request REST pakai token dari IP sandbox (datacenter), generate repo dari
+  template, 1 run probe workflow (Playwright scraping hashtag TikTok di runner hosted), beberapa push. Sebelumnya juga ada
+  auto-sync rules yang nge-push ke 59 repo (2026-09-22). Penyebab pasti GAK ketahuan - aktivitas agent termasuk kandidat.
+- Tindakan: cron `crawl.yml` dimatiin (workflow_dispatch only) biar gak nambah risiko ke akun & aman dari
+  GitHub Additional Product Terms (Actions buat aktivitas di luar production/testing/deployment).
 - Dampak: raw.githubusercontent feed 404 buat publik -> ditambahin fallback `quick_feed()` di `/api/feed`
   (scan cepat YouTube terbaru + hashtag teratas; production: 54 preset aktif, 8.9 detik pertama kali, lalu cache CDN HIT 0.18 detik).
 - Vercel GitHub App belum ke-install di akun GitHub ini, jadi deploy lewat Vercel CLI (`vercel deploy --prod`).

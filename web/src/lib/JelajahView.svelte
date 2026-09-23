@@ -62,7 +62,7 @@
       {#if feed?.mode === 'live'}
         Hasil scan cepat dari YouTube terbaru & hashtag teratas. Cuma preset yang linknya masih aktif.
       {:else}
-        Dikumpulin otomatis dari hashtag TikTok & YouTube tiap 6 jam, cuma preset yang linknya masih aktif.
+        Hasil crawler hashtag TikTok & YouTube, cuma preset yang linknya masih aktif.
       {/if}
       {#if feed?.updated}<span class="upd"><Icon name="clock" size={13} />update {timeAgo(feed.updated)}</span>{/if}
     </p>
@@ -94,7 +94,7 @@
   {:else if error}
     <div class="empty card"><Icon name="alert" size={22} /><div>{error}</div><button class="btn sm" onclick={load}><Icon name="refresh" size={14} />Coba lagi</button></div>
   {:else if !feed?.items.length}
-    <div class="empty card"><Icon name="compass" size={24} /><div><b>Feed belum ada isinya.</b><br />Crawler GitHub Actions jalan tiap 6 jam, balik lagi nanti ya.</div></div>
+    <div class="empty card"><Icon name="compass" size={24} /><div><b>Feed belum ada isinya.</b><br />Coba refresh bentar lagi ya.</div></div>
   {:else}
     <div class="count muted">{items.length} preset</div>
     <div class="grid">

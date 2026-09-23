@@ -1,11 +1,13 @@
 name: Crawl feed preset
 
-# Kenapa di Actions: TikTok nge-block IP datacenter AWS (Vercel) buat API hashtag,
-# sedangkan runner GitHub (Azure) masih lolos. Hasilnya dipush ke branch `data`
-# dan dibaca web lewat raw.githubusercontent.com (gratis, CDN, CORS *).
+# Crawler hashtag TikTok (Playwright). Hasilnya dipush ke branch `data` dan dibaca web
+# lewat raw.githubusercontent.com. Web TETAP jalan tanpa ini (fallback quick_feed di server).
+#
+# Cron sengaja DIMATIIN: GitHub Additional Product Terms (Actions) ngelarang runner hosted
+# dipake buat aktivitas di luar "production, testing, deployment, or publication" project,
+# dan crawling data berkala itu area abu-abu. Jalanin manual seperlunya, atau lebih aman
+# jalanin di mesin sendiri: python -m amfinder crawl --out feed.json
 on:
-  schedule:
-    - cron: '17 */6 * * *'
   workflow_dispatch:
     inputs:
       tags:
