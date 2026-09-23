@@ -72,19 +72,29 @@ preview video bisa diputer, hosting gratis (Vercel / Cloudflare).
 - Feed: https://raw.githubusercontent.com/xykalnotkel/am-preset-finder/data/feed.json
 
 **Update (sesi sama, setelah push):**
-- Semua REST API GitHub buat user `xykalnotkel` balik "API rate limit exceeded" (bucket 60/jam, kayak anonim) dan
-  profil + semua repo xykalnotkel 404 buat pengunjung anonim (termasuk repo lama kayak XyDesk & fotolivemaker).
-  githubstatus lagi ada incident "API Requests" (investigating). Git push/ls-remote pakai token tetap jalan
-  (commit 5a23a82 udah di main). Konsekuensi: raw.githubusercontent feed bisa gak kebaca -> ditambahin fallback.
-- `quick_feed()` + `/api/feed` fallback: kalau feed crawler gak kebaca, server scan cepat YouTube terbaru + hashtag
-  teratas (embed) -> tes lokal 84 preset aktif dalam 15.8 detik. Cache 30 menit per instance + CDN s-maxage 1800.
-- Vercel GitHub App belum ke-install di akun GitHub ini (API: "install the GitHub integration first"),
-  jadi deploy lewat Vercel CLI (`vercel deploy --prod`). Auto-deploy dari push butuh Kall install app sekali.
+- Akun `xykalnotkel` kemungkinan besar lagi **di-flag GitHub**: profil + SEMUA repo (termasuk repo lama XyDesk,
+  fotolivemaker) 404 buat pengunjung anonim, dan REST/GraphQL API akun ini dibatasi 60 request/jam (kayak anonim).
+  Git push via token tetap jalan (main = f245bec). Kemungkinan pemicu: auto-sync rules yang nge-push commit otomatis ke
+  59 repo sekaligus (semua repo ke-update 2026-09-22 dengan commit "chore: apply XyVerse absolute rules"). Belum pasti.
+- Dampak: raw.githubusercontent feed 404 buat publik -> ditambahin fallback `quick_feed()` di `/api/feed`
+  (scan cepat YouTube terbaru + hashtag teratas; production: 54 preset aktif, 8.9 detik pertama kali, lalu cache CDN HIT 0.18 detik).
+- Vercel GitHub App belum ke-install di akun GitHub ini, jadi deploy lewat Vercel CLI (`vercel deploy --prod`).
+
+**Verifikasi production (https://am-preset-finder.vercel.app, 2026-09-23):**
+- YouTube search 10 video -> 5 ada link, 6 preset aktif (5.7 dtk). Channel @stwgguk jalan.
+- TikTok profil @dan_newbie -> 5/6 ada link; @rezzpreset77 -> 22/24 ada link. Hashtag lite jalan (7 video embed).
+- Tempel link: vt.tiktok.com, youtu.be, alight.link jalan; `evil.com/?youtube.com/...` ditolak (skip).
+- Preview: hover inline muter (currentTime naik), modal muter + ikut rasio asli (landscape 768x576 -> sheet 16:9).
+- Download TikTok: 2.5 MB H.264 576x1024 dengan Content-Disposition. Stream range 206 jalan.
+- Download YouTube di server: 501 dengan pesan jelas (fitur lokal).
+- Header keamanan (nosniff, referrer no-referrer, permissions-policy) kepasang. 0 error JS di console.
 
 **Next Step:**
 - Kall: install https://github.com/apps/vercel ke repo `am-preset-finder` biar auto-deploy tiap push.
-- Kall: cek kenapa akun GitHub 404 buat publik (kemungkinan flag/limit dari incident atau aktivitas API berat) -
-  kalau udah normal, workflow CI + Crawl jalan sendiri.
+- Kall: buka github.com/xykalnotkel di incognito. Kalau 404, ajukan reinstatement ke GitHub Support
+  (support.github.com -> Account -> flagged). Setelah normal, workflow CI + Crawl jalan sendiri & feed crawler kebaca.
+- Kall: rotate token GitHub / Vercel / Cloudflare yang ada di kuncikerjasama.txt (aturan #9: token yang pernah
+  di-upload ke chat anggap bocor).
 - Tambah sumber Instagram Reels (butuh riset akses publik 2026).
 - Notifikasi preset baru dari creator favorit (Web Push / OneSignal XyCloudStore? perlu app terpisah biar key gak ketuker).
 - Kalau traffic naik: pindah cache link ke Vercel KV / Upstash biar hasil cek dishare antar instance.
