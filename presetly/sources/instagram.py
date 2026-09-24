@@ -20,7 +20,8 @@ from ..links import LinkBag, host_matches
 from ..util import SourceError, to_int
 
 API = "https://www.instagram.com/api/v1"
-API2 = "https://i.instagram.com/api/v1"  # lapis cadangan (host mobile, WAF beda)
+API2 = "https://www.instagram.com/api/v1"  # lapis 2: sama, tapi beda kuki (anti-429 loop)
+API3 = "https://api.instagram.com/api/v1"  # lapis 3: public-API host resmi, WAF beda
 APP_ID = "936619743392459"  # app id web publik Instagram (dipake klien web resmi)
 RE_IG_URL = re.compile(r"(?:https?://)?(?:www\.)?instagram\.com/(?:[\w.\-]+/)?(reel|reels|p|tv)/([A-Za-z0-9_-]{5,24})", re.I)
 RE_IG_USER = re.compile(r"(?:https?://)?(?:www\.)?instagram\.com/([\w.\-]+)/?$", re.I)
@@ -58,7 +59,7 @@ def _get(path: str, params: dict | None = None) -> dict:
     #   ronde 2: napas 1.4s dulu, coba dua host lagi (rate-limit biasanya lepas cepat)
     last: SourceError | None = None
     for ronde in range(2):
-        for base in (API, API2):
+        for base in (API, API2, API3):
             _throttle()
             r = session().get(
                 base + path,
@@ -76,7 +77,7 @@ def _get(path: str, params: dict | None = None) -> dict:
         if ronde == 0:
             import random
 
-            time.sleep(1.1 + random.random() * 1.3)  # jitter anti pola tetap
+            time.sleep(2.2 + random.random() * 1.8)  # jitter, rendahin beban IP sesi
     assert last is not None
     raise last
 
