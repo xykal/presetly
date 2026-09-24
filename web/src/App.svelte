@@ -17,10 +17,14 @@
     { id: 'koleksi', label: 'Koleksi', icon: 'bookmark' },
   ];
 
+  // Memori scroll per tab: balik ke tab sebelumnya, posisi scroll diinget lagi.
+  const scrolls: Partial<Record<Tab, number>> = {};
+
   function go(t: Tab) {
+    if (t !== ui.tab) scrolls[ui.tab] = window.scrollY;
     ui.tab = t;
     history.replaceState(null, '', t === 'cari' ? '/' : `#${t}`);
-    window.scrollTo({ top: 0 });
+    queueMicrotask(() => window.scrollTo({ top: scrolls[t] ?? 0 }));
   }
 
   $effect(() => {
