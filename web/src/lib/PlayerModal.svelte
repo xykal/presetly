@@ -111,12 +111,13 @@
       <div class="stage">
         {#if t.platform === 'youtube'}
           {#if ytLoaded}
+            <!-- Error 153 = embed tanpa referer ketolak. origin + strict-origin-when-cross-origin biar lolos. -->
             <iframe
-              src={`https://www.youtube.com/embed/${t.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+              src={`https://www.youtube.com/embed/${t.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&origin=${location.origin}`}
               title={t.title ?? 'YouTube'}
               allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
               allowfullscreen
-              referrerpolicy="no-referrer"
+              referrerpolicy="strict-origin-when-cross-origin"
             ></iframe>
           {:else}
             <!-- Facade: thumbnail dulu (ringan), player YouTube baru dimuat pas diklik. -->
@@ -201,8 +202,6 @@
     inset: 0;
     z-index: 80;
     background: rgba(4, 3, 8, 0.86);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     display: grid;
     place-items: center;
     padding: 14px;
@@ -217,7 +216,7 @@
     position: relative;
     width: min(94vw, 880px);
     background: var(--surface);
-    border: 1px solid var(--line-2);
+    border: 0;
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.8);
@@ -289,7 +288,6 @@
     color: #fff;
     background: rgba(7, 6, 11, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(8px);
     transition: transform 0.2s var(--ease), background 0.2s;
   }
   .facade:hover .fplay {
@@ -366,7 +364,6 @@
     display: grid;
     place-items: center;
     background: rgba(7, 6, 11, 0.6);
-    backdrop-filter: blur(8px);
     color: #fff;
     z-index: 2;
   }

@@ -113,8 +113,6 @@
     gap: 5px;
   }
   .tags .badge {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     background: rgba(7, 6, 11, 0.7);
   }
   .save {
@@ -128,8 +126,6 @@
     display: grid;
     place-items: center;
     background: rgba(7, 6, 11, 0.62);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     color: #fff;
   }
   .save.on {
@@ -147,8 +143,6 @@
     border-radius: 8px;
     border: 0;
     background: rgba(7, 6, 11, 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     color: #fff;
     font-size: 11.5px;
     font-weight: 700;

@@ -86,10 +86,7 @@
     position: sticky;
     top: 0;
     z-index: 30;
-    background: rgba(7, 6, 11, 0.78);
-    backdrop-filter: blur(16px) saturate(1.4);
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
-    border-bottom: 1px solid var(--line);
+    background: var(--bg-1);
   }
   .bar {
     height: 62px;
@@ -147,7 +144,6 @@
   nav.top button.on {
     color: var(--text);
     background: var(--surface-2);
-    border-color: var(--line-2);
   }
   main {
     padding-top: 18px;
@@ -173,10 +169,8 @@
       height: 62px;
       padding: 6px;
       border-radius: 20px;
-      background: rgba(18, 16, 28, 0.9);
-      backdrop-filter: blur(18px) saturate(1.4);
-      -webkit-backdrop-filter: blur(18px) saturate(1.4);
-      border: 1px solid var(--line-2);
+      background: var(--surface-2);
+      border: 0;
       box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
     }
     .dock button {

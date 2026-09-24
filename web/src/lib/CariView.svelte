@@ -291,7 +291,7 @@
     padding: 8px;
     border-radius: 12px;
     background: var(--bg-1);
-    border: 1px solid var(--line);
+    border: 0;
     text-align: center;
   }
   .stats b {

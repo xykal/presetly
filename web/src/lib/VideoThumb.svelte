@@ -223,8 +223,6 @@
     padding: 0 7px;
     border-radius: 7px;
     background: rgba(7, 6, 11, 0.72);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
     font-size: 10.5px;
     font-weight: 700;
     color: #fff;
@@ -250,7 +248,6 @@
     padding: 11px;
     border-radius: 50%;
     background: rgba(7, 6, 11, 0.55);
-    backdrop-filter: blur(6px);
   }
   .vt:hover .center {
     opacity: 1;

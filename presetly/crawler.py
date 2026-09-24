@@ -20,7 +20,9 @@ from .sources import tiktok, youtube
 
 YT_QUERIES = ["preset alight motion", "preset am dibawah 5mb", "preset alight motion jedag jedug", "preset xml alight motion"]
 QUICK_YT = ["preset alight motion", "preset am dibawah 5mb", "preset alight motion jedag jedug"]
-QUICK_TT_TAGS = ["presetalightmotion", "presetdibawah5mb"]
+QUICK_TT_TAGS = ["presetalightmotion", "presetdibawah5mb", "presetam", "alightmotionpreset"]
+# Creator preset yang konsisten aktif (dipakai quick_feed biar jelajah penuh kreator).
+QUICK_TT_CREATORS = ["dan_newbie", "rezzpreset77", "avn_al", "dizzypreset8"]
 MAX_ITEMS = 400
 KEEP_DAYS = 21
 SCAN_OPTS = {"comments": True, "deep": True, "resolve": True}
@@ -87,23 +89,48 @@ def crawl(out_path: str, tags: list[str], per_tag: int = 30):
 
 
 def quick_feed(per_query: int = 8) -> dict:
+    """Jangkauan luas tapi tetep cepat (< 30s): SEMUA lapis (yt search, hashtag,
+    creator) dijalanin PARALEL — satu lapis mati (blokir IP dsb) gak narik lapis lain."""
     videos: list[dict] = []
-    for q in QUICK_YT:
-        try:
-            for r in youtube.search(q, per_query, "new"):
-                r["found_via"] = "yt:" + q
+    import threading
+
+    lock = threading.Lock()
+
+    def add(rows, via):
+        with lock:
+            for r in rows or []:
+                r["found_via"] = via
                 videos.append(r)
+
+    def yt_lane(q):
+        try:
+            add(youtube.search(q, per_query, "new"), "yt:" + q)
         except Exception as e:
             _log(f"quick yt gagal '{q}': {e}")
-    for tag in QUICK_TT_TAGS:
+
+    def tag_lane(tag):
         try:
-            for r in tiktok.embed_tag(tag):
-                r["found_via"] = "#" + tag
-                videos.append(r)
+            add(tiktok.embed_tag(tag), "#" + tag)
         except Exception as e:
             _log(f"quick tag gagal '{tag}': {e}")
-    results = _scan_all(_dedupe(videos)[:30], workers=8)
-    return build_feed(results, {}, QUICK_TT_TAGS, mode="live")
+
+    def creator_lane(handle):
+        try:
+            _prof, recs = tiktok.profile(handle, 10)
+            add(recs, "@" + handle)
+        except Exception as e:
+            _log(f"quick creator gagal '@{handle}': {e}")
+
+    jobs = (
+        [(yt_lane, q) for q in QUICK_YT] + [(tag_lane, t) for t in QUICK_TT_TAGS] + [(creator_lane, c) for c in QUICK_TT_CREATORS]
+    )
+    with ThreadPoolExecutor(len(jobs)) as ex:
+        list(ex.map(lambda j: j[0](j[1]), jobs))
+    results = _scan_all(_dedupe(videos)[:64], workers=10)
+    feed = build_feed(results, {}, QUICK_TT_TAGS, mode="live")
+    feed["creators"] = list(QUICK_TT_CREATORS)
+    _log(f"quick_feed: {len(feed.get('items', []))} preset dari {len(videos)} video ({len(jobs)} lapis)")
+    return feed
 
 
 def build_feed(results: list[dict], prev: dict, tags: list[str], mode: str) -> dict:

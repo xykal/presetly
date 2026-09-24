@@ -9,6 +9,10 @@
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
+
+  function validUrl(u: string): boolean {
+    return /^https?:/.test(u);
+  }
 </script>
 
 {#if ui.qr}
@@ -17,11 +21,17 @@
       <button class="close" aria-label="Tutup" onclick={() => (ui.qr = null)}><Icon name="x" size={18} /></button>
       <div class="name">{ui.qr.name || 'Preset Alight Motion'}</div>
       <div class="qr"><img src={`/api/qr?d=${encodeURIComponent(ui.qr.url)}`} alt="QR code" width="232" height="232" /></div>
-      <p class="muted">Scan pakai kamera HP, preset langsung kebuka di Alight Motion.</p>
+      {#if validUrl(ui.qr.url)}
+        <p class="muted">Scan pakai kamera HP, preset langsung kebuka di Alight Motion.</p>
+      {:else}
+        <p class="muted">Scan pakai kamera HP buat salin isinya.</p>
+      {/if}
       <div class="url mono">{ui.qr.url.replace(/^https?:\/\//, '')}</div>
       <div class="acts">
-        <button class="btn sm" onclick={() => ui.qr && copyText(ui.qr.url)}><Icon name="copy" size={15} />Copy link</button>
-        <a class="btn sm primary" href={safeUrl(ui.qr.url)} target="_blank" rel="noopener">Buka link</a>
+        <button class="btn sm" onclick={() => ui.qr && copyText(ui.qr.url)}><Icon name="copy" size={15} />{validUrl(ui.qr.url) ? 'Copy link' : 'Copy'}</button>
+        {#if validUrl(ui.qr.url)}
+          <a class="btn sm primary" href={safeUrl(ui.qr.url)} target="_blank" rel="noopener">Buka link</a>
+        {/if}
       </div>
     </div>
   </div>
@@ -33,8 +43,6 @@
     inset: 0;
     z-index: 85;
     background: rgba(4, 3, 8, 0.82);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     display: grid;
     place-items: center;
     padding: 16px;
@@ -45,7 +53,7 @@
     padding: 22px 20px 18px;
     text-align: center;
     background: var(--surface);
-    border: 1px solid var(--line-2);
+    border: 0;
     border-radius: 22px;
     animation: pop 0.25s var(--ease) both;
   }

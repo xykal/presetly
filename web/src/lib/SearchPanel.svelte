@@ -226,7 +226,7 @@
     padding: 4px;
     border-radius: 14px;
     background: var(--bg-1);
-    border: 1px solid var(--line);
+    border: 0;
   }
   .tabs button {
     display: flex;
@@ -316,7 +316,7 @@
     padding: 12px;
     border-radius: 12px;
     background: var(--bg-1);
-    border: 1px solid var(--line);
+    border: 0;
     font-size: 13px;
     color: var(--text-2);
   }

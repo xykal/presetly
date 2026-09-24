@@ -39,9 +39,7 @@
     padding: 11px 15px;
     border-radius: 13px;
     background: rgba(26, 23, 40, 0.94);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid var(--line-2);
+    border: 0;
     box-shadow: var(--shadow);
     font-size: 13.5px;
     font-weight: 500;

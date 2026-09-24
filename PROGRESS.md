@@ -216,3 +216,23 @@ Yang dicoba (semuanya gak mempan buat IP cloud):
 - Switch region Vercel sin1 -> iad1 (AWS US East) — tetap 429; dikembalikan ke sin1.
 - Relay antrean Supabase: kedua key 401 (project mati/rotated). Firebase RTDB: URL proyek gak bisa diverifikasi tanpa OAuth console.
 Kesimpulan: IG memblokir IP datacenter luas; tanpa session login / proxy residensial berbayar gak ada jalan bersih. Fitur IG tetap jalan dari IP rumahan (lokal) & link-tempel per reel; error sekarang ramah ("coba lagi 1-2 menit").
+
+## 2026-09-24 — Wave 4: Revamp UI "pekat" + Jelajah luas + YouTube embed fix + Footer profil + Donasi
+
+**UI/UX (user: "pekat, Jangan Glasmorph, neon, cyber, gada garis border"):**
+- Token baru: palet solid pekat (#07080a base), tanpa anywhere: backdrop-filter (21x dibuang), border garis var(--line) (13x), gradient shine tombol, gradient/neon text, radial glow background, garis aksen ::before, border-top footer, shadow glow button.
+- Header & dock: dulu kaca rgba+blur, sekarang panel solid opaque.
+- Style lain dipertahankan: radius, warna status ok/warn/bad, skeleton shimmer (fungsional, bukan dekor), spinner border-top (teknik loading, bukan border visual), konten kiri kanan tetap.
+
+**YouTube embed error 153 (user lapor):**
+- Biangnya: Referrer-Policy "no-referrer" dari vercel.json bikin YouTube nolak embed. Diganti "strict-origin-when-cross-origin" + origin param di src + referrerpolicy per-iframe.
+
+**Jelajah jauh lebih luas (user: "tiktok & creator banyak banget harusnya"):**
+- quick_feed: 12 lapis PARALEL (3 yt search + 4 hashtag TT + 4 profil creator: dan_newbie rezzpreset77 avn_al dizzypreset8) lalu scan 64 video — 1 lapis mati gak ganggu lain. Hasil sandbox: 65 → 111 preset; TikTok 0 → 13 sumber; creator terdeteksi avn_al, dan_newbie, kanggus_76...
+- Chip filter per-creator (top 8, sumber handle/author), summary "N preset · M creator (TikTok x · YouTube y)", content-visibility:auto di kartu (list panjang tetap cepat).
+
+**Load cepat:** prefetch /api/feed pas app start (warm), content-visibility, feed max-age 300, tanpa Supabase (project mati — tidak dipakai sama sekali; dikonfirmasi grep).
+
+**Footer gaya profil (user request):** list ke kiri (mark flat -> nama -> deskripsi -> panah), bukan card; "JUGA DARI XYVERSE" 6 aplikasi + bagian DONASI DANA 6283-1166-32566 (salin + QR via /api/qr, tombol "Buka link" disembunyiin kalau payload bukan URL). Logo resmi filebin 404 — dipakai mark blok flat; 1 baris komentar siap swap kalau pack re-upload.
+
+**QA:** ruff clean · 58 pytest · svelte-check 0/0 · build sukses (~42KB gzip JS).

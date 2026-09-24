@@ -13,6 +13,24 @@
   let platform = $state<'all' | 'tiktok' | 'youtube'>('all');
   let sortBy = $state<'new' | 'small' | 'popular'>('new');
   let shown = $state(24);
+  let creator = $state<string | null>(null);
+
+  // Creator yang terdeteksi di feed, diurut dari paling produktif.
+  const creators = $derived.by(() => {
+    const m = new Map<string, number>();
+    for (const it of feed?.items ?? [])
+      for (const s of it.sources ?? []) {
+        const h = (s.author_handle || s.author || '').replace(/^@/, '');
+        if (h) m.set(h, (m.get(h) ?? 0) + 1);
+      }
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+  });
+  const totals = $derived.by(() => {
+    const c = { tiktok: 0, youtube: 0 };
+    for (const it of feed?.items ?? [])
+      for (const s of it.sources ?? []) if (s.platform === 'tiktok' || s.platform === 'youtube') c[s.platform as 'tiktok' | 'youtube'] += 1;
+    return c;
+  });
 
   async function load() {
     loading = true;
@@ -34,6 +52,7 @@
     const list = (feed?.items ?? []).filter((p) => {
       if (onlyFree && !((p.size_mb ?? 99) <= FREE_MB)) return false;
       if (platform !== 'all' && !p.sources?.some((s) => s.platform === platform)) return false;
+      if (creator && !(p.sources ?? []).some((s) => (s.author_handle || s.author || '').replace(/^@/, '') === creator)) return false;
       if (needle && ![p.name, ...(p.sources ?? []).map((s) => `${s.author} ${s.author_handle} ${s.title}`)].join(' ').toLowerCase().includes(needle)) return false;
       return true;
     });
@@ -51,6 +70,7 @@
     void onlyFree;
     void platform;
     void sortBy;
+    void creator;
     shown = 24;
   });
 </script>
@@ -86,6 +106,15 @@
     </div>
   </div>
 
+  {#if creators.length > 1}
+    <div class="cchips" aria-label="Filter creator">
+      <button class="chip sm" class:on={creator === null} onclick={() => (creator = null)}>Semua creator</button>
+      {#each creators.slice(0, 8) as [h, n] (h)}
+        <button class="chip sm" class:on={creator === h} onclick={() => (creator = creator === h ? null : h)}>@{h} <span class="n">{n}</span></button>
+      {/each}
+    </div>
+  {/if}
+
   {#if loading}
     <div class="muted small-note">Lagi ngumpulin preset... pertama kali bisa sampe 20 detik.</div>
     <div class="grid">
@@ -96,7 +125,7 @@
   {:else if !feed?.items.length}
     <div class="empty card"><Icon name="compass" size={24} /><div><b>Feed belum ada isinya.</b><br />Coba refresh bentar lagi ya.</div></div>
   {:else}
-    <div class="count muted">{items.length} preset</div>
+    <div class="count muted">{items.length} preset · {creators.length} creator (TikTok {totals.tiktok} · YouTube {totals.youtube})</div>
     <div class="grid">
       {#each items.slice(0, shown) as p (p.key)}<PresetCard preset={p} />{/each}
     </div>
@@ -217,5 +246,33 @@
     gap: 10px;
     text-align: center;
     color: var(--muted);
+  }
+
+  .cchips {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 2px 1px 4px;
+    scrollbar-width: none;
+  }
+  .cchips::-webkit-scrollbar {
+    display: none;
+  }
+  .chip.sm {
+    height: 26px;
+    padding: 0 10px;
+    font-size: 11.5px;
+    flex: none;
+  }
+  .chip.sm .n {
+    color: var(--muted);
+    font-size: 10.5px;
+  }
+  .chip.sm.on .n {
+    color: rgba(246, 243, 255, 0.75);
+  }
+  .grid > :global(.card) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 210px;
   }
 </style>

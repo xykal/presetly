@@ -70,18 +70,8 @@
     padding: 10px;
     border-radius: 14px;
     background: var(--bg-1);
-    border: 1px solid var(--line);
+    border: 0;
     position: relative;
-  }
-  .am::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 12px;
-    bottom: 12px;
-    width: 3px;
-    border-radius: 0 3px 3px 0;
-    background: linear-gradient(var(--brand), var(--cyan));
   }
   .projs {
     display: flex;
@@ -94,7 +84,7 @@
     font-weight: 650;
     color: var(--text-2);
     background: var(--surface-2);
-    border: 1px solid var(--line);
+    border: 0;
     border-radius: 6px;
     padding: 1px 6px;
     max-width: 140px;
@@ -105,9 +95,6 @@
   .small { font-size: 10.5px; }
   .am.dead {
     opacity: 0.55;
-  }
-  .am.dead::before {
-    background: var(--bad);
   }
   .thumb {
     width: 52px;
