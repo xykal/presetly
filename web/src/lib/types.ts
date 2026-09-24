@@ -126,4 +126,5 @@ export interface PlayerTarget {
   url: string;
   vertical?: boolean;
   play?: string | null;
+  thumb?: string | null;
 }

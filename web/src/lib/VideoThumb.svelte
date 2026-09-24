@@ -20,13 +20,14 @@
   let failedThumb = $state(false);
   let videoEl = $state<HTMLVideoElement | null>(null);
   let loadingSrc = $state(false);
-  let triedProxy = false;
+  // Rantai fallback: 0 = item.play (sering expired), 1 = play segar dari server, 2 = proxy server.
+  let stage = 0;
 
   $effect(() => {
     thumb = item.thumb ?? null;
     src = item.play ?? null;
     failedThumb = false;
-    triedProxy = false;
+    stage = 0;
   });
 
   const isTT = $derived(item.platform === 'tiktok');
@@ -39,12 +40,14 @@
     try {
       const m = await api.ttMedia(item.id);
       src = m.play || m.proxy;
+      stage = m.play ? 1 : 2;
       if (m.thumb && failedThumb) {
         thumb = m.thumb;
         failedThumb = false;
       }
     } catch {
       src = `/api/stream/tiktok/${item.id}`;
+      stage = 2;
     } finally {
       loadingSrc = false;
     }
@@ -63,9 +66,19 @@
   }
 
   function onVideoError() {
-    // URL CDN kadang expired / diblok -> fallback ke proxy server sekali.
-    if (!triedProxy && isTT) {
-      triedProxy = true;
+    // URL CDN sering expired / diblok -> naikin satu tingkat ke sumber berikutnya.
+    if (!isTT) return;
+    if (stage === 0) {
+      stage = 1;
+      api
+        .ttMedia(item.id)
+        .then((m) => (src = m.play || m.proxy))
+        .catch(() => {
+          stage = 2;
+          src = `/api/stream/tiktok/${item.id}`;
+        });
+    } else if (stage === 1) {
+      stage = 2;
       src = `/api/stream/tiktok/${item.id}`;
     } else {
       playing = false;
@@ -82,7 +95,7 @@
     stopInline();
     openPlayer({
       platform: item.platform, id: item.id, title: item.title, author: item.author, url: item.url,
-      vertical, play: src ?? item.play ?? null,
+      vertical, play: src ?? item.play ?? null, thumb: thumb ?? item.thumb ?? null,
     });
   }
 </script>

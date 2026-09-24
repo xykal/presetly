@@ -6,9 +6,12 @@
 
   const t = $derived(ui.player);
   let src = $state<string | null>(null);
-  let muted = $state(false);
+  // Mulai muted: autoplay bersuara DIBLOKIR browser (Chrome/Safari/Firefox) -> layar hitam.
+  // Pengguna bisa nyalain suara lewat tombol volume.
+  let muted = $state(true);
   let failed = $state(false);
-  let triedProxy = false;
+  // Rantai fallback: 0 = mp4 langsung (CDN), 1 = proxy server, 2 = iframe player TikTok.
+  let stage = 0;
   let downloading = $state(false);
   // Orientasi asli dari metadata video (hint dari API kadang salah buat video landscape).
   let natural = $state<boolean | null>(null);
@@ -19,13 +22,11 @@
     src = null;
     natural = null;
     failed = false;
-    triedProxy = false;
+    stage = 0;
+    muted = true;
     if (!cur || cur.platform !== 'tiktok') return;
-    if (cur.play) {
-      src = cur.play;
-      return;
-    }
     let alive = true;
+    // URL play listing itu signed URL yang cepat expired -> selalu minta yang segar dari server.
     api
       .ttMedia(cur.id)
       .then((m) => alive && (src = m.play || m.proxy))
@@ -52,10 +53,14 @@
   }
 
   function onErr() {
-    if (!triedProxy && t) {
-      triedProxy = true;
+    if (!t) return;
+    if (stage === 0) {
+      // mp4 langsung gagal (expired / diblok) -> coba proxy server sekali.
+      stage = 1;
       src = `/api/stream/tiktok/${t.id}`;
-    } else {
+    } else if (stage === 1) {
+      // Proxy pun gagal -> iframe player TikTok resmi.
+      stage = 2;
       failed = true;
     }
   }
@@ -90,20 +95,28 @@
             title={t.title ?? 'TikTok'}
             allow="autoplay; encrypted-media; fullscreen"
             allowfullscreen
+            referrerpolicy="no-referrer"
           ></iframe>
+          <a class="fallback-hint" href={safeUrl(t.url)} target="_blank" rel="noopener">
+            Kalau tetap gak muncul, buka langsung di TikTok
+          </a>
         {:else if src}
           <!-- svelte-ignore a11y_media_has_caption -->
           <video
             {src}
+            poster={t.thumb ?? undefined}
             autoplay
             loop
             playsinline
             controls
             {muted}
+            preload="auto"
             onerror={onErr}
             onloadedmetadata={(e) => {
               const v = e.currentTarget;
               if (v.videoWidth && v.videoHeight) natural = v.videoHeight >= v.videoWidth;
+              // Beberapa browser (mis. iOS low-power) nolak autoplay walau muted -> paksa play.
+              v.play().catch(() => {});
             }}
           ></video>
         {:else}
@@ -196,6 +209,17 @@
     inset: 0;
     display: grid;
     place-items: center;
+  }
+  .fallback-hint {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 10px;
+    text-align: center;
+    font-size: 11.5px;
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: underline;
+    z-index: 2;
   }
   .spin {
     width: 28px;

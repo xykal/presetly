@@ -30,7 +30,7 @@
 
   function play() {
     if (!src) return;
-    openPlayer({ platform: src.platform, id: src.id, title: src.title, author: src.author, url: src.video_url, vertical: src.vertical ?? src.platform === 'tiktok' });
+    openPlayer({ platform: src.platform, id: src.id, title: src.title, author: src.author, url: src.video_url, vertical: src.vertical ?? src.platform === 'tiktok', thumb: src.thumb ?? null });
   }
 </script>
 

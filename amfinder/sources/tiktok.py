@@ -25,6 +25,8 @@ RE_VIDEO = re.compile(r"tiktok\.com/@([\w.\-]*)/(video|photo)/(\d+)")
 RE_SHORT = re.compile(r"(?:vt|vm)\.tiktok\.com/|tiktok\.com/t/")
 ASK_RE = re.compile(r"preset|link|xml|\bam\b|\bcc\b|mana|minta|share|bagi|pls|please|info|turun|drop|5mb|kasih|min\b", re.I)
 _MEDIA_CACHE = TTLCache(2000)
+PLAY_TTL = 600  # play URL signed CDN cepat expired
+MEDIA_TTL = 24 * 3600  # cache entry (cover awet, play diperbarui tiap PLAY_TTL)
 
 
 # ---------------------------------------------------------------------------
@@ -171,15 +173,24 @@ def embed_video(vid: str) -> dict | None:
 
 
 def media(vid: str) -> dict:
-    """URL mp4 (embed, bisa diputer tanpa cookie) + cover segar. Cache 6 jam."""
-    hit = _MEDIA_CACHE.get(vid)
-    if hit:
-        return hit
-    rec = embed_video(vid) or {}
-    out = {"play": rec.get("play"), "thumb": rec.get("thumb")}
-    if out["play"] or out["thumb"]:
-        _MEDIA_CACHE.set(vid, out, 6 * 3600)
-    return out
+    """URL mp4 (embed, bisa diputer tanpa cookie) + cover.
+
+    Play URL itu signed URL CDN yang cepat expired, jadi cache-nya PENDENDEK (10 menit).
+    Cover awet di-cache 24 jam.
+    """
+    now = time.time()
+    hit = _MEDIA_CACHE.get(vid) or {}
+    if hit.get("play") and now - hit.get("at", 0) < PLAY_TTL:
+        return {"play": hit["play"], "thumb": hit.get("thumb")}
+    try:
+        rec = embed_video(vid) or {}
+    except requests.RequestException:
+        rec = {}
+    play = rec.get("play") or hit.get("play")  # play lama lebih baik daripada nihil (frontend ada fallback)
+    thumb = rec.get("thumb") or hit.get("thumb")
+    if play or thumb:
+        _MEDIA_CACHE.set(vid, {"play": play, "thumb": thumb, "at": now}, MEDIA_TTL)
+    return {"play": play, "thumb": thumb}
 
 
 # ---------------------------------------------------------------------------
