@@ -19,8 +19,8 @@ Deskripsi, caption, komen pinned, sampai balasan creator dibaca otomatis. Tiap l
 
 | | |
 |---|---|
-| **Cari** | YouTube (keyword / channel), TikTok (profil creator / hashtag), atau tempel link campur (video, shorts, `vt.tiktok.com`, profil, playlist, `alight.link`). |
-| **Baca sampai dalem** | YouTube: deskripsi + komen pinned + komen creator. TikTok: caption + komen + **balasan creator** (di TikTok link preset paling sering nongol di balasan komen, bukan di caption). |
+| **Cari** | YouTube (keyword / channel), TikTok (profil creator / hashtag), Instagram (profil creator), atau tempel link campur (video, shorts, `vt.tiktok.com`, reel IG, profil, playlist, `alight.link`). |
+| **Baca sampai dalem** | YouTube: deskripsi + komen pinned + komen creator. TikTok: caption + komen + **balasan creator** (di TikTok link preset paling sering nongol di balasan komen, bukan di caption). Instagram: caption + link bio. |
 | **Cek preset** | Nama, thumbnail, ukuran, jumlah project, status aktif/mati. Label **AM gratis bisa** (≤ 5 MB) vs **butuh premium**. Link XML (Drive/MediaFire/catbox) ikut ditampilin + nama filenya. |
 | **Preview video** | TikTok: hover / tap **Putar** buat preview inline (muted, loop), klik buat player penuh. YouTube: player embed resmi. |
 | **Download** | TikTok MP4 H.264 tanpa watermark. YouTube: cuma mode lokal (lihat [Keterbatasan](#keterbatasan)). |
@@ -40,6 +40,7 @@ Vercel Function (Python 3.12 + Flask, region sin1)          Crawler opsional (ma
    ├─ YouTube: yt-dlp flat (search/listing)                    ├─ Playwright scroll #hashtag TikTok
    │           + innertube /next (deskripsi + komentar)        ├─ scan + cek semua link preset
    ├─ TikTok : embed SSR, API komentar, yt-dlp listing         └─ push feed.json -> branch `data`
+   ├─ Instagram: web_profile_info + oembed (tanpa login)                │
    └─ Alight : alight.link -> share page (og:title/size)                 │
                                                                 raw.githubusercontent.com (CDN, gratis)
 ```
@@ -122,6 +123,7 @@ tests/                pytest (parser, klasifikasi, API)
 
 - **Hashtag TikTok di versi web cuma "lite"**: video dari feed crawler (kalau ada) + video teratas dari embed. Hasil lengkap: jalanin lokal.
 - **Download YouTube cuma di mode lokal.** YouTube minta verifikasi bot buat IP datacenter, dan bypass-nya butuh cookie akun (gak aman buat server publik).
+- **Instagram: komen & hashtag gak kebaca** (butuh login). Yang dibaca: caption + link bio. Reel yang lebih tua dari 24 post terakhir creator-nya: preview jatuh ke iframe embed (link & caption tetap ketemu lewat oembed).
 - Link di Linktree / web bio cuma ditampilin, gak ikut discan.
 - Link dari **komen penonton** ditandain kuning, bisa aja spam. Cek dulu sebelum dipake.
 - TikTok & YouTube sering ganti sistem. Kalau tiba-tiba kosong, biasanya cukup update `yt-dlp`.

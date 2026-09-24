@@ -15,7 +15,7 @@
   let downloading = $state(false);
   // Orientasi asli dari metadata video (hint dari API kadang salah buat video landscape).
   let natural = $state<boolean | null>(null);
-  const vertical = $derived(natural ?? t?.vertical ?? t?.platform === 'tiktok');
+  const vertical = $derived(natural ?? t?.vertical ?? t?.platform !== 'youtube');
 
   $effect(() => {
     const cur = ui.player;
@@ -24,13 +24,13 @@
     failed = false;
     stage = 0;
     muted = true;
-    if (!cur || cur.platform !== 'tiktok') return;
+    if (!cur || cur.platform === 'youtube') return;
     let alive = true;
     // URL play listing itu signed URL yang cepat expired -> selalu minta yang segar dari server.
     api
-      .ttMedia(cur.id)
+      .mediaOf(cur.platform, cur.id)
       .then((m) => alive && (src = m.play || m.proxy))
-      .catch(() => alive && (src = `/api/stream/tiktok/${cur.id}`));
+      .catch(() => alive && (src = `/api/stream/${cur.platform}/${cur.id}`));
     return () => {
       alive = false;
     };
@@ -53,13 +53,13 @@
   }
 
   function onErr() {
-    if (!t) return;
+    if (!t || t.platform === 'youtube') return;
     if (stage === 0) {
       // mp4 langsung gagal (expired / diblok) -> coba proxy server sekali.
       stage = 1;
-      src = `/api/stream/tiktok/${t.id}`;
+      src = `/api/stream/${t.platform}/${t.id}`;
     } else if (stage === 1) {
-      // Proxy pun gagal -> iframe player TikTok resmi.
+      // Proxy pun gagal -> iframe player resmi platform.
       stage = 2;
       failed = true;
     }
@@ -68,9 +68,12 @@
   function download() {
     if (!t) return;
     downloading = true;
-    const handle = (t.url.match(/@([\w.-]+)/) || [])[1] || 'tiktok';
+    const handle = (t.url.match(/@([\w.-]+)/) || t.url.match(/instagram\.com\/([\w.]+)/) || [])[1] || t.platform;
     const a = document.createElement('a');
-    a.href = t.platform === 'tiktok' ? `/api/stream/tiktok/${t.id}?dl=1&u=${encodeURIComponent(handle)}` : `/api/stream/youtube/${t.id}`;
+    a.href =
+      t.platform === 'youtube'
+        ? `/api/stream/youtube/${t.id}`
+        : `/api/stream/${t.platform}/${t.id}?dl=1&u=${encodeURIComponent(handle)}`;
     a.rel = 'noopener';
     a.click();
     setTimeout(() => (downloading = false), 2500);
@@ -90,15 +93,25 @@
             allowfullscreen
           ></iframe>
         {:else if failed}
-          <iframe
-            src={`https://www.tiktok.com/player/v1/${t.id}?autoplay=1&loop=1&description=0&music_info=0&rel=0`}
-            title={t.title ?? 'TikTok'}
-            allow="autoplay; encrypted-media; fullscreen"
-            allowfullscreen
-            referrerpolicy="no-referrer"
-          ></iframe>
+          {#if t.platform === 'tiktok'}
+            <iframe
+              src={`https://www.tiktok.com/player/v1/${t.id}?autoplay=1&loop=1&description=0&music_info=0&rel=0`}
+              title={t.title ?? 'TikTok'}
+              allow="autoplay; encrypted-media; fullscreen"
+              allowfullscreen
+              referrerpolicy="no-referrer"
+            ></iframe>
+          {:else}
+            <iframe
+              src={`https://www.instagram.com/reel/${t.id}/embed/`}
+              title={t.title ?? 'Instagram'}
+              allow="autoplay; encrypted-media; fullscreen"
+              allowfullscreen
+              referrerpolicy="no-referrer"
+            ></iframe>
+          {/if}
           <a class="fallback-hint" href={safeUrl(t.url)} target="_blank" rel="noopener">
-            Kalau tetap gak muncul, buka langsung di TikTok
+            Kalau tetap gak muncul, buka langsung di {t.platform === 'tiktok' ? 'TikTok' : 'Instagram'}
           </a>
         {:else if src}
           <!-- svelte-ignore a11y_media_has_caption -->
@@ -129,7 +142,7 @@
           {#if t.author}<div class="muted small">{t.author}</div>{/if}
         </div>
         <div class="acts">
-          {#if t.platform === 'tiktok' && !failed}
+          {#if t.platform !== 'youtube' && !failed}
             <button class="btn sm icon" aria-label={muted ? 'Nyalain suara' : 'Mute'} onclick={() => (muted = !muted)}>
               <Icon name={muted ? 'mute' : 'volume'} size={15} />
             </button>
@@ -137,7 +150,7 @@
           <button class="btn sm" onclick={download} disabled={downloading}>
             <Icon name="download" size={15} />{downloading ? 'Nyiapin...' : 'Download'}
           </button>
-          <a class="btn sm icon" href={safeUrl(t.url)} target="_blank" rel="noopener" aria-label="Buka di aplikasi" title="Buka di {t.platform === 'tiktok' ? 'TikTok' : 'YouTube'}">
+          <a class="btn sm icon" href={safeUrl(t.url)} target="_blank" rel="noopener" aria-label="Buka di aplikasi" title="Buka di {t.platform === 'youtube' ? 'YouTube' : t.platform === 'instagram' ? 'Instagram' : 'TikTok'}">
             <Icon name="external" size={15} />
           </a>
         </div>

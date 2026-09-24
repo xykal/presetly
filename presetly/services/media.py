@@ -13,12 +13,12 @@ import re
 import requests
 
 from ..config import HTTP_TIMEOUT, UA
-from ..sources import tiktok
+from ..sources import instagram, tiktok
 from ..sources.ytdlp_util import ydl
 from ..util import SourceError
 
 ALLOWED_MEDIA_HOST = re.compile(
-    r"^https://[\w.-]+\.(tiktokcdn(-us|-eu)?\.com|tiktok\.com|tiktokv\.(com|us|eu)|ibyteimg\.com|byteoversea\.com|muscdn\.com)/"
+    r"^https://[\w.-]+\.(tiktokcdn(-us|-eu)?\.com|tiktok\.com|tiktokv\.(com|us|eu)|ibyteimg\.com|byteoversea\.com|muscdn\.com|cdninstagram\.com|fbcdn\.net)/"
 )
 
 
@@ -46,6 +46,14 @@ def youtube_stream_source(vid: str) -> tuple[str, dict]:
     if not url:
         raise SourceError("Format mp4 gabungan gak tersedia")
     return url, dict(info.get("http_headers") or {})
+
+
+def instagram_stream_source(code: str) -> tuple[str, dict]:
+    """Return (url, headers) buat stream mp4 Instagram (scontent CDN)."""
+    play = instagram.media(code).get("play")
+    if play and ALLOWED_MEDIA_HOST.match(play):
+        return play, {"User-Agent": UA, "Referer": "https://www.instagram.com/"}
+    raise SourceError("Video Instagram gak bisa diambil (mungkin kehapus / private / kelewat baru)")
 
 
 def open_upstream(url: str, headers: dict, range_header: str | None = None) -> requests.Response:

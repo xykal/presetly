@@ -26,13 +26,13 @@
     <div class="info">
       <a class="title" href={safeUrl(shown.url)} target="_blank" rel="noopener">{shown.title || '(tanpa judul)'}</a>
       <div class="meta">
-        <span class="pf {shown.platform}"><Icon name={shown.platform} size={13} />{shown.platform === 'tiktok' ? 'TikTok' : 'YouTube'}</span>
+        <span class="pf {shown.platform}"><Icon name={shown.platform} size={13} />{shown.platform === 'tiktok' ? 'TikTok' : shown.platform === 'instagram' ? 'Instagram' : 'YouTube'}</span>
         {#if shown.author}<span class="author">{shown.author}</span>{/if}
         {#if shown.views != null}<span><Icon name="eye" size={12} /> {fmtNum(shown.views)}</span>{/if}
         {#if shown.ts}<span>{timeAgo(shown.ts)}</span>{/if}
       </div>
       {#if !r}
-        <div class="scanning"><span class="dot"></span>Lagi baca {shown.platform === 'youtube' ? 'deskripsi & komen' : 'caption, komen & balasan'}...</div>
+        <div class="scanning"><span class="dot"></span>Lagi baca {shown.platform === 'youtube' ? 'deskripsi & komen' : shown.platform === 'instagram' ? 'caption' : 'caption, komen & balasan'}...</div>
       {:else if r.error}
         <div class="err"><Icon name="alert" size={14} />{r.error}</div>
       {:else}
@@ -143,6 +143,9 @@
   }
   .pf.tiktok {
     color: var(--tt);
+  }
+  .pf.instagram {
+    color: #f08b5a;
   }
   .counts {
     display: flex;

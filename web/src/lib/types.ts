@@ -1,4 +1,5 @@
-export type Platform = 'youtube' | 'tiktok' | 'link';
+export type Platform = 'youtube' | 'tiktok' | 'instagram' | 'link';
+export type NativePlatform = 'youtube' | 'tiktok' | 'instagram';
 export type LinkType = 'am' | 'xml' | 'other';
 export type FileKind = 'xml' | 'zip' | 'sound' | 'folder' | 'video' | 'image' | 'apk' | 'file';
 
@@ -25,7 +26,7 @@ export interface FoundLink {
 }
 
 export interface VideoItem {
-  platform: 'youtube' | 'tiktok';
+  platform: NativePlatform;
   id: string;
   url: string;
   title?: string | null;
@@ -83,7 +84,7 @@ export interface Health {
 }
 
 export interface FeedSource {
-  platform: 'youtube' | 'tiktok';
+  platform: NativePlatform;
   id: string;
   video_url: string;
   title: string;
@@ -119,7 +120,7 @@ export interface Feed {
 }
 
 export interface PlayerTarget {
-  platform: 'youtube' | 'tiktok';
+  platform: NativePlatform;
   id: string;
   title?: string | null;
   author?: string | null;

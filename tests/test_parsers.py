@@ -246,3 +246,52 @@ def test_parse_user_and_tag():
     assert tiktok.parse_user("https://www.tiktok.com/@dan_newbie?lang=id") == "dan_newbie"
     assert tiktok.parse_tag("#preset am!!") == "presetam"
     assert tiktok.parse_tag("https://www.tiktok.com/tag/presetalightmotion?x=1") == "presetalightmotion"
+
+
+def test_instagram_parse_url():
+    from presetly.sources import instagram as ig
+
+    assert ig.parse_url("https://www.instagram.com/reel/Ch74NvrD2UV/") == ("video", "Ch74NvrD2UV", None)
+    assert ig.parse_url("https://instagram.com/dan.preset/reels/AbC123-xYz_/") == ("video", "AbC123-xYz_", "dan.preset")
+    assert ig.parse_url("https://www.instagram.com/some.user_/p/AbC123-xYz/") == ("video", "AbC123-xYz", "some.user_")
+    assert ig.parse_url("https://www.instagram.com/dan.preset/") == ("user", "dan.preset", None)
+    assert ig.parse_url("https://evil.com/?instagram.com/reel/XXXXXXX/") == (None, None, None)
+    assert ig.parse_url("https://www.instagram.com.evil.com/reel/XXXXXXX/") == (None, None, None)
+
+
+def test_instagram_short_to_media_id():
+    from presetly.sources.instagram import short_to_media_id
+
+    assert short_to_media_id("Ch74NvrD2UV") == 2917172418798642453
+
+
+def test_instagram_rec_from_node():
+    from presetly.sources.instagram import _rec_from_node
+
+    node = {
+        "shortcode": "AbC123-xYz_",
+        "is_video": True,
+        "video_url": "https://scontent.cdninstagram.com/v/x.mp4",
+        "video_view_count": 1234,
+        "video_duration": 27.4,
+        "like_count": 99,
+        "taken_at_timestamp": 1700000000,
+        "thumbnail_src": "https://scontent.cdninstagram.com/t.jpg",
+        "dimensions": {"height": 1920, "width": 1080},
+        "owner": {"username": "kreator"},
+        "edge_media_to_caption": {"edges": [{"node": {"text": "preset gratis https://alight.link/abcd1234"}}]},
+    }
+    rec = _rec_from_node(node)
+    assert rec["platform"] == "instagram" and rec["id"] == "AbC123-xYz_"
+    assert rec["play"].endswith(".mp4") and rec["views"] == 1234
+    assert rec["duration"] == 27 and rec["vertical"] is True
+    assert "alight.link/abcd1234" in rec["caption"]
+
+    scan_out = __import__("presetly.sources.instagram", fromlist=["scan"]).scan(dict(rec))
+    assert any(lk["type"] == "am" for lk in scan_out["links"])
+
+
+def test_classify_instagram():
+    assert classify("https://www.instagram.com/reel/AbC123-xYz/") == "ig_video"
+    assert classify("https://www.instagram.com/dan.preset/") == "ig_profile"
+    assert classify("https://www.instagram.com/explore/tags/x/") is None

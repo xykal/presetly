@@ -12,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ..config import MAX_LIST_ITEMS, MAX_SCAN_ITEMS
 from ..links import RE_AM_SHARE, RE_AM_SHORT, LinkBag, host_matches
-from ..sources import tiktok, youtube
+from ..sources import instagram, tiktok, youtube
 from ..util import SourceError, short_err
 from . import feed, resolver
 
@@ -55,6 +55,12 @@ def classify(url: str) -> str | None:
             return "yt_playlist"
         if re.match(r"^/(@|channel/|c/|user/)", path):
             return "yt_channel"
+    if host_matches(host, ("instagram.com", "instagr.am")):
+        kind, val, _ = instagram.parse_url(url)
+        if kind == "video" and val:
+            return "ig_video"
+        if kind == "user" and val:
+            return "ig_profile"
     return None
 
 
@@ -106,6 +112,10 @@ def build_list(p: dict) -> dict:
                     from_embed = []
                 items = from_feed + from_embed
                 notes.append(f"hashtag-lite:{len(from_feed)}:{len(from_embed)}")
+    elif platform == "instagram":
+        # IG gak punya search/hashtag publik -> fokus: profil creator (username / URL).
+        prof, recs = instagram.profile(query, limit)
+        profile, items = prof, recs
     elif platform == "link":
         bag = LinkBag()
         for tok in re.findall(r"\S+", query)[:40]:
@@ -133,6 +143,12 @@ def build_list(p: dict) -> dict:
                     items += recs
                 elif kind == "tt_tag":
                     items += tiktok.embed_tag(tiktok.parse_tag(url))
+                elif kind == "ig_video":
+                    items.append(instagram.video(url))
+                elif kind == "ig_profile":
+                    prof, recs = instagram.profile(url, limit)
+                    profile = profile or prof
+                    items += recs
                 else:
                     notes.append("skip:" + tok[:60])
             except Exception as e:
@@ -162,6 +178,8 @@ def scan_one(item: dict, opts: dict) -> dict:
             rec = youtube.scan(rec, scan_comments=opts.get("comments", True))
         elif rec["platform"] == "tiktok":
             rec = tiktok.scan(rec, scan_comments=opts.get("comments", True), deep=opts.get("deep", True))
+        elif rec["platform"] == "instagram":
+            rec = instagram.scan(rec)
         else:
             rec["links"] = []
         rec["links"] = resolver.enrich(rec.get("links") or [], opts.get("resolve", True))

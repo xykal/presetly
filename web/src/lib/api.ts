@@ -1,4 +1,4 @@
-import type { Feed, FoundLink, Health, ListResponse, ScanResult, VideoItem } from './types';
+import type { Feed, FoundLink, Health, ListResponse, Platform, ScanResult, VideoItem } from './types';
 
 export class ApiError extends Error {
   constructor(message: string, readonly status: number) {
@@ -35,7 +35,7 @@ async function call<T>(path: string, init?: RequestInit & { json?: unknown }, si
 }
 
 export interface ListParams {
-  platform: 'youtube' | 'tiktok' | 'link';
+  platform: Platform;
   mode: string;
   query: string;
   limit: number;
@@ -56,7 +56,9 @@ export const api = {
     call<{ results: ScanResult[] }>('/api/scan', { json: { items, ...opts } }, signal),
   check: (url: string) => call<{ links: FoundLink[] }>('/api/check', { json: { url } }),
   feed: () => call<Feed>('/api/feed'),
+  mediaOf: (p: Platform, id: string) => (p === 'instagram' ? api.igMedia(id) : api.ttMedia(id)),
   ttMedia: (id: string) => call<{ play: string | null; proxy: string; thumb: string | null }>(`/api/media/tiktok/${id}`),
+  igMedia: (code: string) => call<{ play: string | null; proxy: string; thumb: string | null }>(`/api/media/instagram/${code}`),
 };
 
 export async function exportCsv(results: ScanResult[]) {

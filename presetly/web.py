@@ -12,7 +12,7 @@ from . import __version__
 from .config import IS_SERVERLESS, MAX_SCAN_ITEMS
 from .links import extract_links
 from .services import feed, media, resolver, scanner
-from .sources import tiktok
+from .sources import instagram, tiktok
 from .util import SourceError, short_err
 
 DIST = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dist")
@@ -169,6 +169,19 @@ def api_tt_thumb(vid):
     return resp
 
 
+@app.get("/api/thumb/instagram/<code>")
+def api_ig_thumb(code):
+    """Cover Instagram yang URL-nya udah expired -> redirect ke cover segar."""
+    if not re.fullmatch(r"[A-Za-z0-9_-]{5,24}", code):
+        abort(400)
+    thumb = instagram.media(code).get("thumb")
+    if not thumb:
+        abort(404)
+    resp = Response(status=302, headers={"Location": thumb})
+    resp.headers["Cache-Control"] = "public, max-age=21600, s-maxage=21600"
+    return resp
+
+
 def _proxy(url: str, headers: dict, filename: str | None):
     up = media.open_upstream(url, headers, request.headers.get("Range"))
     out_headers = {
@@ -215,6 +228,29 @@ def api_yt_stream(vid):
         )
     url, headers = media.youtube_stream_source(vid)
     return _proxy(url, headers, f"youtube_{vid}.mp4")
+
+
+@app.get("/api/media/instagram/<code>")
+def api_ig_media(code):
+    if not re.fullmatch(r"[A-Za-z0-9_-]{5,24}", code):
+        abort(400)
+
+    m = instagram.media(code)
+    resp = jsonify(play=m.get("play"), proxy=f"/api/stream/instagram/{code}", thumb=m.get("thumb"))
+    resp.headers["Cache-Control"] = "public, max-age=600, s-maxage=900"
+    return resp
+
+
+@app.get("/api/stream/instagram/<code>")
+def api_ig_stream(code):
+    if not re.fullmatch(r"[A-Za-z0-9_-]{5,24}", code):
+        abort(400)
+    if _rate_limited("stream", 120):
+        return _err("Kebanyakan request", 429)
+    url, headers = media.instagram_stream_source(code)
+    dl = request.args.get("dl")
+    user = re.sub(r"[^\\w.\\-]", "", request.args.get("u", ""))[:40] or "instagram"
+    return _proxy(url, headers, f"{user}_{code}.mp4" if dl else None)
 
 
 @app.get("/api/feed")

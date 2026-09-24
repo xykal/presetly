@@ -4,7 +4,7 @@
   import { notify, runSearch, search, stopSearch, ui } from './state.svelte';
   import { recent, type RecentSearch } from './storage';
 
-  type Pf = 'youtube' | 'tiktok' | 'link';
+  type Pf = 'youtube' | 'tiktok' | 'instagram' | 'link';
   let pf = $state<Pf>('youtube');
   let ytMode = $state<'search' | 'channel'>('search');
   let ttMode = $state<'hashtag' | 'profile'>('profile');
@@ -18,7 +18,7 @@
   let recents = $state<RecentSearch[]>(recent.all());
 
   const busy = $derived(search.status === 'listing' || search.status === 'scanning');
-  const mode = $derived(pf === 'youtube' ? ytMode : pf === 'tiktok' ? ttMode : 'auto');
+  const mode = $derived(pf === 'youtube' ? ytMode : pf === 'tiktok' ? ttMode : pf === 'instagram' ? 'profile' : 'auto');
   const liveTag = $derived(!!ui.health?.hashtag_live);
 
   const CONF: Record<string, { ph: string; chips: string[]; note: string; limit: number }> = {
@@ -37,7 +37,11 @@
       chips: ['presetalightmotion', 'presetam', 'presetdibawah5mb', 'presetxml', 'alightmotionpreset'],
       note: '',
     },
-    'link:auto': { ph: '', limit: 30, chips: [], note: 'Bisa campur: video/shorts, vt.tiktok.com, profil, channel, playlist, alight.link.' },
+    'link:auto': { ph: '', limit: 30, chips: [], note: 'Bisa campur: video/shorts, vt.tiktok.com, profil, channel, playlist, reel IG, alight.link.' },
+    'instagram:profile': {
+      ph: '@username atau link profil instagram.com', limit: 24, chips: [],
+      note: 'Baca caption + bio profil (komen IG butuh login, gak discan). Reel lama bisa lewat Tempel link.',
+    },
   };
   const conf = $derived(CONF[`${pf}:${mode}`]);
 
@@ -84,6 +88,9 @@
     <button type="button" role="tab" aria-selected={pf === 'tiktok'} class:on={pf === 'tiktok'} onclick={() => (pf = 'tiktok')}>
       <Icon name="tiktok" size={16} class="tt" />TikTok
     </button>
+    <button type="button" role="tab" aria-selected={pf === 'instagram'} class:on={pf === 'instagram'} onclick={() => (pf = 'instagram')}>
+      <Icon name="instagram" size={16} class="ig" />Instagram
+    </button>
     <button type="button" role="tab" aria-selected={pf === 'link'} class:on={pf === 'link'} onclick={() => (pf = 'link')}>
       <Icon name="link" size={16} /><span class="full">Tempel link</span><span class="short">Link</span>
     </button>
@@ -94,17 +101,19 @@
       {#if pf === 'youtube'}
         <button type="button" class="chip" class:on={ytMode === 'search'} onclick={() => (ytMode = 'search')}><Icon name="search" size={13} />Keyword</button>
         <button type="button" class="chip" class:on={ytMode === 'channel'} onclick={() => (ytMode = 'channel')}><Icon name="user" size={13} />Channel</button>
-      {:else}
+      {:else if pf === 'tiktok'}
         <button type="button" class="chip" class:on={ttMode === 'profile'} onclick={() => (ttMode = 'profile')}><Icon name="user" size={13} />Profil creator</button>
         <button type="button" class="chip" class:on={ttMode === 'hashtag'} onclick={() => (ttMode = 'hashtag')}><Icon name="hash" size={13} />Hashtag</button>
+      {:else}
+        <button type="button" class="chip on"><Icon name="user" size={13} />Profil creator</button>
       {/if}
     </div>
     <div class="field">
-      <Icon name={pf === 'tiktok' && ttMode === 'hashtag' ? 'hash' : pf === 'tiktok' || ytMode === 'channel' ? 'user' : 'search'} size={18} class="lead" />
+      <Icon name={pf === 'tiktok' && ttMode === 'hashtag' ? 'hash' : pf === 'instagram' || pf === 'tiktok' || ytMode === 'channel' ? 'user' : 'search'} size={18} class="lead" />
       <input class="input" bind:value={query} placeholder={conf.ph} autocomplete="off" enterkeyhint="search" aria-label="Kata kunci" />
     </div>
   {:else}
-    <textarea class="input" bind:value={links} placeholder={'Satu link per baris:\nhttps://vt.tiktok.com/xxxx/\nhttps://youtube.com/shorts/xxxx\nhttps://www.tiktok.com/@creator\nhttps://alight.link/xxxx'} aria-label="Daftar link"></textarea>
+    <textarea class="input" bind:value={links} placeholder={'Satu link per baris:\nhttps://vt.tiktok.com/xxxx/\nhttps://youtube.com/shorts/xxxx\nhttps://www.instagram.com/reel/xxxx\nhttps://www.tiktok.com/@creator\nhttps://alight.link/xxxx'} aria-label="Daftar link"></textarea>
   {/if}
 
   {#if conf.chips.length}

@@ -103,3 +103,37 @@ preview video bisa diputer, hosting gratis (Vercel / Cloudflare).
 - Tambah sumber Instagram Reels (butuh riset akses publik 2026).
 - Notifikasi preset baru dari creator favorit (Web Push / OneSignal XyCloudStore? perlu app terpisah biar key gak ketuker).
 - Kalau traffic naik: pindah cache link ke Vercel KV / Upstash biar hasil cek dishare antar instance.
+
+### 2026-09-24 - v2.1.0: rename Presetly, fix modal preview hitam, sumber Instagram, polish audit
+**Status:** Done
+**Dikerjain oleh:** AI Agent + Kall (permintaan: lanjutin proyek, ganti nama simple-elegan, cek apa yang kurang)
+
+**Rename total -> "Presetly"** (dipilih Kall dari kandidat Motif/Presetly/Lume/XyMotion):
+- Package/module `amfinder` -> `presetly` (`python -m presetly`), repo `xykal/presetly` (rename GitHub, redirect lama jalan).
+- Identitas baru: favicon "P" + titik cyan, ikon PWA PNG 192/512/maskable + apple-touch-icon (generator: `tools/gen_icons.py`),
+  og.png 1200x630. Env `AMF_*` -> `PRESETLY_*`. Versi 2.1.0.
+
+**Fix bug modal preview hitam (dilaporkan Kall):**
+- Akar: autoplay unmuted diblok browser + URL `play` signed CDN expired dipakai tanpa refresh + fallback gak berantai.
+- Fix: mulai muted + `play()` dipaksa di onloadedmetadata; modal selalu minta `/api/media/*/segar` (cache server play
+  6 jam -> 10 menit); rantai fallback mp4 segar -> proxy server -> iframe player + link "buka di TikTok/IG"; poster dari thumb.
+
+**Sumber Instagram Reels** (hasil riset + probe live, tanpa login, 2026-09-24):
+- Jalan: `web_profile_info` (profil + timeline + reels + video_url/views/durasi), `api/v1/oembed` (link reel tunggal:
+  caption, author, thumb, media_id). Tembok: `media/{id}/info` (302), hashtag, komen (butuh login) -> gak dipakai, jujur di docs.
+- Link reel tanpa username di URL: oembed -> author -> 24 item terakhir profil buat video_url; kalau gak ketemu preview
+  jatuh ke iframe embed IG. Anti host-lookalike (instagram.com.evil.com ditolak) via `host_matches`.
+- Frontend: tab Instagram (profil creator), tempel link reel IG, player modal native + fallback iframe embed, stream & download.
+
+**Polish audit:**
+- SEO: og:image/twitter:card/canonical/JSON-LD, robots.txt, sitemap.xml. PWA icons PNG + maskable.
+- API: error handler global JSON (404/5xx gak lagi HTML), Referrer-Policy disamain `no-referrer` (Flask & vercel.json).
+- Test 43 -> 51 (JSON error, security headers, parser IG, classify IG, shortcode->media_id).
+
+**Infra (pakai token dari kuncikerjasama.txt seperlunya):**
+- Cloudflare D1 database `presetly` dibuat (uuid 8a43bb2d-1254-471f-b99f-55a8eee33be9, account a678fee6e0a026ccd2fd978cdf07806a)
+  + tabel `subs` & `seen` -> penyimpanan notifikasi Web Push. KV gak ada di account, Supabase gak bisa DDL lewat REST.
+- Catatan keamanan: token di kuncikerjasama.txt tetap wajib di-rotate (aturan #9). Token Cloudflare dipake sebagai env
+  `PRESETLY_D1_TOKEN` di Vercel -> idealnya ganti token scoped khusus D1 nanti.
+
+**Next Step (lanjutan sesi ini):** notifikasi preset baru (Web Push + VAPID + D1), auto-deploy Vercel dari GitHub.

@@ -30,15 +30,15 @@
     stage = 0;
   });
 
-  const isTT = $derived(item.platform === 'tiktok');
-  const vertical = $derived(item.vertical ?? isTT);
+  const isTT = $derived(item.platform === 'tiktok' || item.platform === 'instagram');
+  const vertical = $derived(item.vertical ?? item.platform !== 'youtube');
 
   async function ensureSrc(): Promise<string | null> {
     if (src) return src;
     if (!isTT || loadingSrc) return null;
     loadingSrc = true;
     try {
-      const m = await api.ttMedia(item.id);
+      const m = await api.mediaOf(item.platform, item.id);
       src = m.play || m.proxy;
       stage = m.play ? 1 : 2;
       if (m.thumb && failedThumb) {
@@ -46,7 +46,7 @@
         failedThumb = false;
       }
     } catch {
-      src = `/api/stream/tiktok/${item.id}`;
+      src = `/api/stream/${item.platform}/${item.id}`;
       stage = 2;
     } finally {
       loadingSrc = false;
@@ -71,15 +71,15 @@
     if (stage === 0) {
       stage = 1;
       api
-        .ttMedia(item.id)
+        .mediaOf(item.platform, item.id)
         .then((m) => (src = m.play || m.proxy))
         .catch(() => {
           stage = 2;
-          src = `/api/stream/tiktok/${item.id}`;
+          src = `/api/stream/${item.platform}/${item.id}`;
         });
     } else if (stage === 1) {
       stage = 2;
-      src = `/api/stream/tiktok/${item.id}`;
+      src = `/api/stream/${item.platform}/${item.id}`;
     } else {
       playing = false;
     }
@@ -88,7 +88,7 @@
   async function onThumbError() {
     if (failedThumb) return;
     failedThumb = true;
-    if (isTT) thumb = `/api/thumb/tiktok/${item.id}`;
+    if (isTT) thumb = `/api/thumb/${item.platform}/${item.id}`;
   }
 
   function openFull() {
