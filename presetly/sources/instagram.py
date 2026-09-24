@@ -43,10 +43,10 @@ _REQ_AT = [0.0]
 
 
 def _throttle() -> None:
-    """Jarak minimal antar-request IG (0.9s) — IP cloud itu dipake bareng, jadi
-    pelan-pelan biar gak kebaca bot + kerja bersih."""
+    """Jarak minimal antar-request IG. Cuma 0.25s — request berantai panjang
+    (delay besar per-request = sinyal bot jelas); yang penting gak burst."""
     with _REQ_LOCK:
-        wait = 0.9 - (time.time() - _REQ_AT[0])
+        wait = 0.25 - (time.time() - _REQ_AT[0])
         if wait > 0:
             time.sleep(wait)
         _REQ_AT[0] = time.time()
@@ -74,7 +74,9 @@ def _get(path: str, params: dict | None = None) -> dict:
                     continue
             last = SourceError(f"Instagram nolak request (HTTP {r.status_code})")
         if ronde == 0:
-            time.sleep(1.4)
+            import random
+
+            time.sleep(1.1 + random.random() * 1.3)  # jitter anti pola tetap
     assert last is not None
     raise last
 
