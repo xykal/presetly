@@ -68,7 +68,7 @@ jobs:
           echo '{"git":{"deploymentEnabled":false}}' > /tmp/out/vercel.json
           cd /tmp/out
           git init -q -b data
-          git config user.name "xykalnotkel"
+          git config user.name "xykal"
           git config user.email "xycdigital@gmail.com"
           git add feed.json vercel.json
           git commit -qm "chore(data): update feed $(date -u +%Y-%m-%dT%H:%MZ)"

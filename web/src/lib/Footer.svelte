@@ -5,8 +5,8 @@
   // Section wajib "JUGA DARI XYVERSE" (aturan branding XYVERSE_GLOBAL_RULES.md #6).
   const APPS = [
     { name: 'XyVerse', desc: 'Cloud PC, apps & software', url: 'https://www.xyverse.my.id' },
-    { name: 'XyDesk', desc: 'Remote desktop low-latency', url: 'https://github.com/xykalnotkel/XyDesk' },
-    { name: 'XyCloudStore', desc: 'Sewa Cloud PC & akun digital', url: 'https://github.com/xykalnotkel/XyCloudStore' },
+    { name: 'XyDesk', desc: 'Remote desktop low-latency', url: 'https://github.com/xykal/XyDesk' },
+    { name: 'XyCloudStore', desc: 'Sewa Cloud PC & akun digital', url: 'https://github.com/xykal/XyCloudStore' },
     { name: 'XyDownloader', desc: 'Downloader semua platform', url: 'https://xydownloader.vercel.app' },
     { name: 'Suara Deck', desc: 'Deck musik + lirik sinkron', url: 'https://suara-deck.vercel.app' },
     { name: 'FotoLive Maker', desc: 'Video jadi Live Photo TikTok', url: 'https://github.com/xykalnotkel/fotolivemaker' },
@@ -36,7 +36,7 @@
       <p class="muted disc">
         Gak berafiliasi sama Alight Motion, TikTok, atau YouTube. Semua preset milik creator masing-masing, jangan lupa kasih credit (cr) kalau dipake.
       </p>
-      <a class="gh" href="https://github.com/xykalnotkel/am-preset-finder" target="_blank" rel="noopener"><Icon name="github" size={16} />Source code</a>
+      <a class="gh" href="https://github.com/xykal/am-preset-finder" target="_blank" rel="noopener"><Icon name="github" size={16} />Source code</a>
     </div>
   </div>
 </footer>

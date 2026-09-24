@@ -23,7 +23,7 @@ CACHE_MAX_ENTRIES = 5000
 # Opsional: URL feed.json hasil crawler GitHub Actions.
 FEED_URL = os.environ.get(
     "AMF_FEED_URL",
-    "https://raw.githubusercontent.com/xykalnotkel/am-preset-finder/data/feed.json",
+    "https://raw.githubusercontent.com/xykal/am-preset-finder/data/feed.json",
 )
 
 IS_SERVERLESS = bool(os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))

@@ -7,7 +7,7 @@
 **Cari link preset Alight Motion dari YouTube & TikTok tanpa scroll berjam-jam.**
 Deskripsi, caption, komen pinned, sampai balasan creator dibaca otomatis. Tiap link preset dicek: nama, ukuran MB, bisa dipake AM gratis atau nggak, masih aktif atau udah mati. Videonya bisa langsung diputer & di-download.
 
-[**Buka web**](https://am-preset-finder.vercel.app) · [Laporan bug](https://github.com/xykalnotkel/am-preset-finder/issues)
+[**Buka web**](https://am-preset-finder.vercel.app) · [Laporan bug](https://github.com/xykal/am-preset-finder/issues)
 
 <sub>Built-in XyVerse · Made in XyVerse By Kall</sub>
 
@@ -69,7 +69,7 @@ Jadi hashtag lengkap cuma bisa dari IP non-datacenter: mode lokal, atau crawler 
 Mode lokal ngebuka semua fitur (hashtag TikTok penuh + download YouTube), soalnya pakai IP rumahan.
 
 ```bash
-git clone https://github.com/xykalnotkel/am-preset-finder && cd am-preset-finder
+git clone https://github.com/xykal/am-preset-finder && cd am-preset-finder
 pip install -r requirements-local.txt
 python -m playwright install chromium      # buat hashtag TikTok penuh
 npm ci && npm run build                    # build frontend ke dist/
