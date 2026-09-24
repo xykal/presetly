@@ -22,10 +22,11 @@ Deskripsi, caption, komen pinned, sampai balasan creator dibaca otomatis. Tiap l
 | **Cari** | YouTube (keyword / channel), TikTok (profil creator / hashtag), Instagram (profil creator), atau tempel link campur (video, shorts, `vt.tiktok.com`, reel IG, profil, playlist, `alight.link`). |
 | **Baca sampai dalem** | YouTube: deskripsi + komen pinned + komen creator. TikTok: caption + komen + **balasan creator** (di TikTok link preset paling sering nongol di balasan komen, bukan di caption). Instagram: caption + link bio. |
 | **Cek preset** | Nama, thumbnail, ukuran, jumlah project, status aktif/mati. Label **AM gratis bisa** (≤ 5 MB) vs **butuh premium**. Link XML (Drive/MediaFire/catbox) ikut ditampilin + nama filenya. |
-| **Preview video** | TikTok: hover / tap **Putar** buat preview inline (muted, loop), klik buat player penuh. YouTube: player embed resmi. |
+| **Preview video** | TikTok & Instagram: hover / tap **Putar** buat preview inline (muted, loop), klik buat player penuh. YouTube: thumbnail kilat + player embed pas diklik. **Semua preview & download TikTok tanpa watermark** (varian wm dibuang otomatis). |
 | **Download** | TikTok MP4 H.264 tanpa watermark. YouTube: cuma mode lokal (lihat [Keterbatasan](#keterbatasan)). |
 | **Jelajah** | Feed preset aktif: scan berkala YouTube terbaru + hashtag teratas di server (cache 30 menit), atau hasil crawler kalau dijalanin. |
-| **Koleksi** | Simpen preset favorit (disimpen di browser, gak perlu login). Export `.txt`. |
+| **Koleksi** | Simpen preset favorit (disimpen di browser, gak perlu login). Export `.txt`. Notifikasi preset baru (Web Push). |
+| **Bagikan** | Pencarian bisa dibagikan lewat URL (`?pf=&mode=&q=`) - penerima langsung lihat hasil yang sama. Salin semua link preset sekali klik. |
 | **Buka di AM** | Di HP langsung kebuka di Alight Motion. Di PC muncul QR buat discan pakai HP. |
 
 ## Arsitektur

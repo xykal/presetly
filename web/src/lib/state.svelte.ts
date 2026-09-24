@@ -65,8 +65,8 @@ export const search = $state({
 });
 
 let controller: AbortController | null = null;
-const BATCH = 3;
-const CONCURRENCY = 4;
+const BATCH = 4;
+const CONCURRENCY = 6;
 
 export const keyOf = (v: { platform: string; id: string }) => `${v.platform}:${v.id}`;
 

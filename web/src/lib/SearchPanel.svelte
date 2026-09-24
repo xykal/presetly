@@ -60,7 +60,30 @@
     const opts: ScanOpts = { comments, deep, resolve: true };
     runSearch(p, opts);
     recents = recent.all();
+    // Simpan pencarian ke URL biar bisa dibagikan / di-bookmark.
+    const u = new URL(location.href);
+    u.search = pf === 'link' ? '' : '?' + new URLSearchParams({ pf, mode, q: q.slice(0, 120) }).toString();
+    u.hash = '';
+    history.replaceState(null, '', u.pathname + u.search);
   }
+
+  // Auto-jalan kalau dibuka dari URL hasil share (?pf=&mode=&q=).
+  let autoRan = false;
+  $effect(() => {
+    if (autoRan) return;
+    const sp = new URLSearchParams(location.search);
+    const qq = sp.get('q');
+    if (!qq) return;
+    autoRan = true;
+    const p2 = sp.get('pf') || 'youtube';
+    if (p2 === 'youtube' || p2 === 'tiktok' || p2 === 'instagram' || p2 === 'link') pf = p2;
+    const m = sp.get('mode') || '';
+    if (pf === 'youtube' && (m === 'search' || m === 'channel')) ytMode = m;
+    if (pf === 'tiktok' && (m === 'profile' || m === 'hashtag')) ttMode = m;
+    if (pf === 'link') links = qq;
+    else query = qq;
+    submit();
+  });
 
   function useRecent(r: RecentSearch) {
     pf = r.platform as Pf;

@@ -24,6 +24,20 @@ API = "https://www.tiktok.com/api/"
 RE_VIDEO = re.compile(r"tiktok\.com/@([\w.\-]*)/(video|photo)/(\d+)")
 RE_SHORT = re.compile(r"(?:vt|vm)\.tiktok\.com/|tiktok\.com/t/")
 ASK_RE = re.compile(r"preset|link|xml|\bam\b|\bcc\b|mana|minta|share|bagi|pls|please|info|turun|drop|5mb|kasih|min\b", re.I)
+WM_RE = re.compile(r"(?:watermark|wm_token|[?&]wm=|_wm\.)", re.I)
+
+
+def clean_play(urls) -> str | None:
+    """Pilih URL mp4 TANPA watermark (embed kadang nyampur varian wm & non-wm)."""
+    if isinstance(urls, str):
+        urls = [urls]
+    cand = [u for u in urls or [] if u]
+    for u in cand:
+        if not WM_RE.search(u):
+            return u
+    return cand[0] if cand else None
+
+
 _MEDIA_CACHE = TTLCache(2000)
 PLAY_TTL = 600  # play URL signed CDN cepat expired
 MEDIA_TTL = 24 * 3600  # cache entry (cover awet, play diperbarui tiap PLAY_TTL)
@@ -117,7 +131,7 @@ def parse_embed_list(state: dict | None, prefix: str) -> tuple[dict | None, list
                 caption=v.get("desc") or "",
                 views=to_int(v.get("playCount")),
                 thumb=v.get("coverUrl") or v.get("originCoverUrl"),
-                play=v.get("playAddr"),
+                play=clean_play(v.get("playAddr")),
                 vertical=(v.get("height") or 16) >= (v.get("width") or 9),
             )
         )
@@ -153,7 +167,7 @@ def parse_embed_video(state: dict | None) -> dict | None:
         duration=meta.get("duration"),
         ts=to_int(ii.get("createTime")),
         thumb=(ii.get("covers") or [None])[0],
-        play=(dig(ii, "video", "urls") or [None])[0],
+        play=clean_play(dig(ii, "video", "urls")),
         vertical=(meta.get("height") or 16) >= (meta.get("width") or 9),
         kind="photo" if vd.get("imagePostInfo") else "video",
     )
@@ -375,6 +389,7 @@ def _rec_from_item(it: dict) -> dict:
         duration=v.get("duration"),
         ts=to_int(it.get("createTime")),
         thumb=v.get("cover") or v.get("originCover"),
+        play=clean_play(v.get("playAddr")),
         kind="photo" if it.get("imagePost") else "video",
     )
 

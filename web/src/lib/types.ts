@@ -5,6 +5,7 @@ export type FileKind = 'xml' | 'zip' | 'sound' | 'folder' | 'video' | 'image' | 
 
 export interface LinkInfo {
   status?: 'ok' | 'dead' | 'error' | 'private';
+  project_names?: string[] | null;
   name?: string | null;
   thumb?: string | null;
   size_mb?: number | null;

@@ -10,7 +10,8 @@
   // Pengguna bisa nyalain suara lewat tombol volume.
   let muted = $state(true);
   let failed = $state(false);
-  // Rantai fallback: 0 = mp4 langsung (CDN), 1 = proxy server, 2 = iframe player TikTok.
+  let ytLoaded = $state(false);
+  // Rantai fallback native: 0 = mp4 listing (sering expired), 1 = play segar server, 2 = proxy, 3 = iframe.
   let stage = 0;
   let downloading = $state(false);
   // Orientasi asli dari metadata video (hint dari API kadang salah buat video landscape).
@@ -22,15 +23,23 @@
     src = null;
     natural = null;
     failed = false;
+    ytLoaded = false;
     stage = 0;
     muted = true;
     if (!cur || cur.platform === 'youtube') return;
     let alive = true;
-    // URL play listing itu signed URL yang cepat expired -> selalu minta yang segar dari server.
+    // Paint INSTAN dari URL listing, sambil minta yang segar (URL listing signed, sering expired).
+    if (cur.play) src = cur.play;
+    else stage = 1;
     api
       .mediaOf(cur.platform, cur.id)
-      .then((m) => alive && (src = m.play || m.proxy))
-      .catch(() => alive && (src = `/api/stream/${cur.platform}/${cur.id}`));
+      .then((m) => {
+        if (!alive) return;
+        const fresh = m.play || m.proxy;
+        if (!src) src = fresh;
+        else if (stage === 1 && m.play && m.play !== src) src = m.play;
+      })
+      .catch(() => alive && !src && (src = `/api/stream/${cur.platform}/${cur.id}`));
     return () => {
       alive = false;
     };
@@ -55,12 +64,27 @@
   function onErr() {
     if (!t || t.platform === 'youtube') return;
     if (stage === 0) {
-      // mp4 langsung gagal (expired / diblok) -> coba proxy server sekali.
+      // URL listing expired -> minta play segar dari server.
       stage = 1;
-      src = `/api/stream/${t.platform}/${t.id}`;
+      api
+        .mediaOf(t.platform, t.id)
+        .then((m) => {
+          const fresh = m.play || m.proxy;
+          if (fresh && fresh !== src) src = fresh;
+          else {
+            stage = 2;
+            src = `/api/stream/${t.platform}/${t.id}`;
+          }
+        })
+        .catch(() => {
+          stage = 2;
+          src = `/api/stream/${t.platform}/${t.id}`;
+        });
     } else if (stage === 1) {
-      // Proxy pun gagal -> iframe player resmi platform.
       stage = 2;
+      src = `/api/stream/${t.platform}/${t.id}`;
+    } else if (stage === 2) {
+      stage = 3;
       failed = true;
     }
   }
@@ -86,12 +110,23 @@
     <div class="sheet" class:vertical role="dialog" aria-modal="true" aria-label="Preview video">
       <div class="stage">
         {#if t.platform === 'youtube'}
-          <iframe
-            src={`https://www.youtube-nocookie.com/embed/${t.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-            title={t.title ?? 'YouTube'}
-            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-            allowfullscreen
-          ></iframe>
+          {#if ytLoaded}
+            <iframe
+              src={`https://www.youtube.com/embed/${t.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+              title={t.title ?? 'YouTube'}
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowfullscreen
+              referrerpolicy="no-referrer"
+            ></iframe>
+          {:else}
+            <!-- Facade: thumbnail dulu (ringan), player YouTube baru dimuat pas diklik. -->
+            <button class="facade" type="button" onclick={() => (ytLoaded = true)} aria-label="Putar video YouTube">
+              <img src={`https://i.ytimg.com/vi/${t.id}/hqdefault.jpg`} alt="" loading="eager" referrerpolicy="no-referrer" onerror={(e) => ((e.currentTarget as HTMLElement).style.display = 'none')} />
+              <span class="fplay"><Icon name="play" size={26} /></span>
+              <span class="fhint">Tap buat putar</span>
+            </button>
+            <a class="fallback-hint" href={safeUrl(t.url)} target="_blank" rel="noopener">Kalau gak muncul, buka langsung di YouTube</a>
+          {/if}
         {:else if failed}
           {#if t.platform === 'tiktok'}
             <iframe
@@ -222,6 +257,55 @@
     inset: 0;
     display: grid;
     place-items: center;
+  }
+  .facade {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    padding: 0;
+    background: #000;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  .facade img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.9;
+  }
+  .fplay {
+    position: relative;
+    z-index: 1;
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    background: rgba(7, 6, 11, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    transition: transform 0.2s var(--ease), background 0.2s;
+  }
+  .facade:hover .fplay {
+    transform: scale(1.08);
+    background: rgba(139, 92, 246, 0.75);
+  }
+  .fhint {
+    position: absolute;
+    bottom: 12px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 11.5px;
+    font-weight: 650;
+    color: rgba(255, 255, 255, 0.85);
+    z-index: 1;
   }
   .fallback-hint {
     position: absolute;

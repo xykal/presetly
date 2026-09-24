@@ -295,3 +295,15 @@ def test_classify_instagram():
     assert classify("https://www.instagram.com/reel/AbC123-xYz/") == "ig_video"
     assert classify("https://www.instagram.com/dan.preset/") == "ig_profile"
     assert classify("https://www.instagram.com/explore/tags/x/") is None
+
+
+def test_tiktok_clean_play_picks_no_watermark():
+    from presetly.sources.tiktok import clean_play
+
+    wm = "https://v16.tiktokcdn.com/video/wm_token/abc.mp4"
+    clean = "https://v16.tiktokcdn.com/video/tos/abc.mp4"
+    assert clean_play([wm, clean]) == clean
+    assert clean_play([clean, wm]) == clean
+    assert clean_play(wm) == wm  # cuma varian wm -> tetap dipake (daripada nihil)
+    assert clean_play([]) is None
+    assert clean_play(None) is None

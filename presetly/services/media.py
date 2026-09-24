@@ -27,7 +27,8 @@ def tiktok_stream_source(vid: str) -> tuple[str, dict]:
     play = tiktok.media(vid).get("play")
     if play and ALLOWED_MEDIA_HOST.match(play):
         return play, {"User-Agent": UA}
-    with ydl(format="b[format_id!=download][vcodec^=h264]/b[vcodec^=h264]/b") as y:
+    # format_id 'download' = varian BER-WATERMARK -> dibuang. Prioritas h264 (paling kompatibel).
+    with ydl(format="b[format_id!=download][vcodec^=h264]/b[format_id!=download][ext=mp4]/b[vcodec^=h264]/b") as y:
         info = y.extract_info(tiktok.video_url(None, vid), download=False)
         url = info.get("url")
         headers = dict(info.get("http_headers") or {})

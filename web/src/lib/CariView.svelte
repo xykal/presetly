@@ -157,6 +157,7 @@
       </div>
       <div class="spacer"></div>
       <button class="btn sm" onclick={copyAll} disabled={!okCount}><Icon name="copy" size={14} />Copy semua</button>
+      <button class="btn sm" onclick={() => copyText(location.href, 'Link pencarian disalin')} title="Salin link pencarian ini"><Icon name="external" size={14} />Bagikan</button>
       <button class="btn sm" onclick={doExport} disabled={!scanned}><Icon name="download" size={14} />CSV</button>
     </div>
 

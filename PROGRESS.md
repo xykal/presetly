@@ -159,3 +159,25 @@ preview video bisa diputer, hosting gratis (Vercel / Cloudflare).
 - Status GitHub (2026-09-24): akun BARU `xykal` (TerserahKal, CEO XyVerse) = rumah repo `xykal/am-preset-finder` (ada commit
   migrasi "alihkan referensi akun xykalnotkel -> xykal"). Token di kuncikerjasama = akun LAMA `xykalnotkel` (admin penuh di
   `xykalnotkel/am-preset-finder`, read-only di repo xykal). Push/rename ke `xykal/presetly` nunggu kredensial/collab akun xykal.
+
+## 2026-09-24 — Wave 2: Lebih banyak fitur + UI/UX + no watermark + YouTube + anti-lag
+
+**Fitur & UX (user: "Lebih banyak Lagi dan Ui Ux Lebih bagus"):**
+- YouTube di PlayerModal: thumbnail instan (i.ytimg.com/hqdefault) + facade "Muat player YouTube" (iframe dimuat pas diklik — hilangin blank/black player & berat embed dari awal) + hint jelas kalau video diproteksi embed.
+- PlayerModal render instan dari `play` list (tiktok-only-list udah bawa play segar), media fresh nyusul di background (Promise, gak blocking), jadi preview kebuka cepat.
+- CariView: tombol "Bagikan" — URL pencarian (?pf=&mode=&q=) dibikin shareable via history.replaceState; auto-run dari URL buat penerima link.
+- PresetLink: chip nama project CapCut di tiap link (maks 3 + "+n lagi") — pakai field project_names yang sebelumnya dibuang backend.
+- App: transisi fade antar tab; app.css: kilau tombol Simpan Cari, hover-angkat kartu, custom scrollbar, ::selection, gradient teks.
+
+**No watermark (user: "preview ya no watermark"):**
+- `tiktok.py clean_play()`: deteksi URL bertanda `wm` + pilih varian kualitas tertinggi tanpa tanda wm dari `play`/`play_addr.url_list`/`download` — dipakai di list, item, dan rekomen. Download ikut bersih karena lewat kanal play yang sama.
+
+**YouTube fix (user: "Untuk youtube belum bisa di puter"):**
+- Probed embed pages (2026-09-24): youtube.com/embed & youtube-nocookie.com/embed sama-sama 200 — embed gak diblokir; masalahnya player sering blank (loading stall + autoplay policy) → facade klik-buka menyelesaikan UX-nya.
+
+**Anti-lag (user: "kok muternya loading trus ya… lag ga cepet"):**
+- YouTube format string `b[format_id!=download][vcodec^=h264]/b[format_id!=download][ext=mp4]/b[vcodec^=h264]/b` — pakai muxed h264/mp4 yang web-friendly.
+- Scan CariView: batch 3→4, konkurensi 4→6.
+- PlayerModal: kurangi blocking fetch (fallback berantai tetap ada).
+
+**QA:** ruff clean · 55 pytest · svelte-check 0 error 0 warning · build sukses.

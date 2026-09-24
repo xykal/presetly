@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { fade } from 'svelte/transition';
   import CariView from './lib/CariView.svelte';
   import Footer from './lib/Footer.svelte';
   import Icon from './lib/Icon.svelte';
@@ -49,13 +50,17 @@
 </header>
 
 <main class="container">
-  {#if ui.tab === 'cari'}
-    <CariView />
-  {:else if ui.tab === 'jelajah'}
-    <JelajahView />
-  {:else}
-    <KoleksiView />
-  {/if}
+  {#key ui.tab}
+    <div class="view" transition:fade={{ duration: 160 }}>
+      {#if ui.tab === 'cari'}
+        <CariView />
+      {:else if ui.tab === 'jelajah'}
+        <JelajahView />
+      {:else}
+        <KoleksiView />
+      {/if}
+    </div>
+  {/key}
 </main>
 
 <Footer />

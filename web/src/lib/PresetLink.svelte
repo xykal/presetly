@@ -31,6 +31,12 @@
   </div>
   <div class="body">
     <div class="name">{info.name || 'Preset Alight Motion'}{#if info.projects && info.projects > 1}<span class="muted"> · {info.projects} project</span>{/if}</div>
+    {#if info.project_names?.length}
+      <div class="projs">
+        {#each info.project_names.slice(0, 3) as pn (pn)}<span class="proj" title={pn}>{pn}</span>{/each}
+        {#if info.project_names.length > 3}<span class="muted small">+{info.project_names.length - 3} lagi</span>{/if}
+      </div>
+    {/if}
     <div class="meta">
       {#if status === 'ok'}
         {#if info.size_text}<span class="size">{info.size_text}</span>{/if}
@@ -77,6 +83,26 @@
     border-radius: 0 3px 3px 0;
     background: linear-gradient(var(--brand), var(--cyan));
   }
+  .projs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+  }
+  .proj {
+    font-size: 10px;
+    font-weight: 650;
+    color: var(--text-2);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1px 6px;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .small { font-size: 10.5px; }
   .am.dead {
     opacity: 0.55;
   }
