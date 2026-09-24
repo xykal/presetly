@@ -181,3 +181,11 @@ preview video bisa diputer, hosting gratis (Vercel / Cloudflare).
 - PlayerModal: kurangi blocking fetch (fallback berantai tetap ada).
 
 **QA:** ruff clean · 55 pytest · svelte-check 0 error 0 warning · build sukses.
+
+## 2026-09-24 — Deploy wave 2 + perbaikan config Vercel
+
+- Hapus lock `vercel.json -> github` (nunjuk repo lama, bikin Actions GHA lompat) — diganti rel langsung CLI + workflow pakai token.
+- `vercel link` dipindah ke project `presetlyapp` (prj_ySCUpQrMJ8t7TQpKQOrtJq6HJOih); `.vercel/` sebelumnya ke link project lama `am-preset-finder`.
+- Nonaktifkan Vercel Deployment Protection (ssoProtection all_except_custom_domains → null) via API supaya URL *.vercel.app bisa diakses publik tanpa login.
+- Deploy prod batch 2: presetlyapp-6ud2k0uc0… ✅ Ready 33s. Bundle live `index-B6Ljw401.js` di presetlyapp.vercel.app + presetly.xyverse.my.id; route IG aktif; push config aktif.
+- Catatan: GitHub push masih tertahan (token PAKAI INI = akun xykalnotkel, tanpa akses tulis ke xykal) — menunggu invite collaborator xykalnotkel di xykal/am-preset-finder atau PAT baru dari akun xykal.
