@@ -127,6 +127,7 @@ tests/                pytest (parser, klasifikasi, API)
 - **Hashtag TikTok di versi web cuma "lite"**: video dari feed crawler (kalau ada) + video teratas dari embed. Hasil lengkap: jalanin lokal.
 - **Download YouTube cuma di mode lokal.** YouTube minta verifikasi bot buat IP datacenter, dan bypass-nya butuh cookie akun (gak aman buat server publik).
 - **Instagram: komen & hashtag gak kebaca** (butuh login). Yang dibaca: caption + link bio. Reel yang lebih tua dari 24 post terakhir creator-nya: preview jatuh ke iframe embed (link & caption tetap ketemu lewat oembed).
+- **Instagram + IP cloud (Vercel dsb)**: IG agresif nge-limit IP datacenter — dari web bisa kena 429 sementara walau kodenya bener (dari laptop/HP jaringan biasa lancar). Kalau kena: tunggu 1-2 menit, atau tempel link reel langsung di tab **Tempel link**.
 - Link di Linktree / web bio cuma ditampilin, gak ikut discan.
 - Link dari **komen penonton** ditandain kuning, bisa aja spam. Cek dulu sebelum dipake.
 - TikTok & YouTube sering ganti sistem. Kalau tiba-tiba kosong, biasanya cukup update `yt-dlp`.
