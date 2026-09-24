@@ -4,6 +4,8 @@
 
 # Presetly
 
+[![CI](https://github.com/xykal/presetly/actions/workflows/ci.yml/badge.svg)](https://github.com/xykal/presetly/actions/workflows/ci.yml) [![Deploy](https://github.com/xykal/presetly/actions/workflows/deploy.yml/badge.svg)](https://github.com/xykal/presetly/actions/workflows/deploy.yml)
+
 **Cari link preset Alight Motion dari YouTube & TikTok tanpa scroll berjam-jam.**
 Deskripsi, caption, komen pinned, sampai balasan creator dibaca otomatis. Tiap link preset dicek: nama, ukuran MB, bisa dipake AM gratis atau nggak, masih aktif atau udah mati. Videonya bisa langsung diputer & di-download.
 
