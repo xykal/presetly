@@ -82,7 +82,9 @@ def _get(path: str, params: dict | None = None) -> dict:
     # 429 = IP cloud lagi kena sup Instagram (bukan akun; sementara & beda tiap IP).
     msg = str(last)
     if "429" in msg:
-        raise SourceError("Instagram lagi nge-limit IP server ini sementara (429). Coba lagi 1-2 menit ya — atau tempel link reel-nya langsung di tab Link.")
+        raise SourceError(
+            "Instagram lagi nge-limit IP server ini sementara (429). Coba lagi 1-2 menit ya — atau tempel link reel-nya langsung di tab Link."
+        )
     raise last
 
 
