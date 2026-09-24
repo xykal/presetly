@@ -7,11 +7,11 @@ UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like 
 # Preset > 5MB biasanya cuma bisa di-import akun AM premium.
 FREE_LIMIT_MB = 5.0
 
-HTTP_TIMEOUT = float(os.environ.get("AMF_HTTP_TIMEOUT", "15"))
+HTTP_TIMEOUT = float(os.environ.get("PRESETLY_HTTP_TIMEOUT", "15"))
 
 # Batas per request biar function serverless gak kelamaan.
-MAX_SCAN_ITEMS = int(os.environ.get("AMF_MAX_SCAN_ITEMS", "12"))
-MAX_LIST_ITEMS = int(os.environ.get("AMF_MAX_LIST_ITEMS", "60"))
+MAX_SCAN_ITEMS = int(os.environ.get("PRESETLY_MAX_SCAN_ITEMS", "12"))
+MAX_LIST_ITEMS = int(os.environ.get("PRESETLY_MAX_LIST_ITEMS", "60"))
 MAX_RESOLVE_PER_ITEM = 12
 
 # Cache in-memory (hidup selama instance serverless masih warm).
@@ -22,8 +22,8 @@ CACHE_MAX_ENTRIES = 5000
 
 # Opsional: URL feed.json hasil crawler GitHub Actions.
 FEED_URL = os.environ.get(
-    "AMF_FEED_URL",
-    "https://raw.githubusercontent.com/xykalnotkel/am-preset-finder/data/feed.json",
+    "PRESETLY_FEED_URL",
+    "https://raw.githubusercontent.com/xykal/presetly/data/feed.json",
 )
 
 IS_SERVERLESS = bool(os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))

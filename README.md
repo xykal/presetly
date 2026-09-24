@@ -1,13 +1,13 @@
 <div align="center">
 
-<img src="web/public/favicon.svg" width="72" alt="AM Preset Finder" />
+<img src="web/public/favicon.svg" width="72" alt="Presetly" />
 
-# AM Preset Finder
+# Presetly
 
 **Cari link preset Alight Motion dari YouTube & TikTok tanpa scroll berjam-jam.**
 Deskripsi, caption, komen pinned, sampai balasan creator dibaca otomatis. Tiap link preset dicek: nama, ukuran MB, bisa dipake AM gratis atau nggak, masih aktif atau udah mati. Videonya bisa langsung diputer & di-download.
 
-[**Buka web**](https://am-preset-finder.vercel.app) · [Laporan bug](https://github.com/xykalnotkel/am-preset-finder/issues)
+[**Buka web**](https://presetly.vercel.app) · [Laporan bug](https://github.com/xykal/presetly/issues)
 
 <sub>Built-in XyVerse · Made in XyVerse By Kall</sub>
 
@@ -61,34 +61,34 @@ Jadi hashtag lengkap cuma bisa dari IP non-datacenter: mode lokal, atau crawler 
 
 1. Fork repo ini.
 2. [vercel.com/new](https://vercel.com/new) -> import repo. Semua setting kebaca dari `vercel.json`, gak perlu env var.
-3. Opsional: generate feed lengkap (`python -m amfinder crawl --out feed.json` di mesin sendiri), push ke branch `data`. Tanpa ini tab Jelajah tetap keisi dari scan server.
-4. Kalau repo lu beda nama, set env `AMF_FEED_URL` di Vercel ke `https://raw.githubusercontent.com/<user>/<repo>/data/feed.json`.
+3. Opsional: generate feed lengkap (`python -m presetly crawl --out feed.json` di mesin sendiri), push ke branch `data`. Tanpa ini tab Jelajah tetap keisi dari scan server.
+4. Kalau repo lu beda nama, set env `PRESETLY_FEED_URL` di Vercel ke `https://raw.githubusercontent.com/<user>/<repo>/data/feed.json`.
 
 ## Jalanin lokal
 
 Mode lokal ngebuka semua fitur (hashtag TikTok penuh + download YouTube), soalnya pakai IP rumahan.
 
 ```bash
-git clone https://github.com/xykalnotkel/am-preset-finder && cd am-preset-finder
+git clone https://github.com/xykal/presetly && cd presetly
 pip install -r requirements-local.txt
 python -m playwright install chromium      # buat hashtag TikTok penuh
 npm ci && npm run build                    # build frontend ke dist/
-python -m amfinder serve                   # http://localhost:8000
+python -m presetly serve                   # http://localhost:8000
 ```
 
-Dev frontend dengan hot reload: `python -m amfinder serve` di satu terminal, `npm run dev` di terminal lain (`/api` otomatis di-proxy).
+Dev frontend dengan hot reload: `python -m presetly serve` di satu terminal, `npm run dev` di terminal lain (`/api` otomatis di-proxy).
 
 > Download YouTube butuh JS runtime (Deno / Node) + ffmpeg, sesuai kebutuhan yt-dlp 2026.
 
 ### CLI
 
 ```bash
-python -m amfinder yt "preset am dibawah 5mb" -n 20
-python -m amfinder yt-channel @namachannel
-python -m amfinder tt-user @dan_newbie
-python -m amfinder tt-tag presetalightmotion -n 40
-python -m amfinder link https://vt.tiktok.com/xxxx/ https://alight.link/xxxx
-python -m amfinder crawl --out feed.json     # generate feed lengkap (butuh Playwright)
+python -m presetly yt "preset am dibawah 5mb" -n 20
+python -m presetly yt-channel @namachannel
+python -m presetly tt-user @dan_newbie
+python -m presetly tt-tag presetalightmotion -n 40
+python -m presetly link https://vt.tiktok.com/xxxx/ https://alight.link/xxxx
+python -m presetly crawl --out feed.json     # generate feed lengkap (butuh Playwright)
 ```
 Tambah `--json` buat output mentah.
 
@@ -97,14 +97,14 @@ Tambah `--json` buat output mentah.
 ```bash
 pkg install python nodejs
 pip install -r requirements.txt
-npm ci && npm run build && python -m amfinder serve
+npm ci && npm run build && python -m presetly serve
 ```
 Playwright gak jalan di Android, jadi hashtag pakai mode lite (sama kayak versi web).
 
 ## Struktur
 
 ```
-amfinder/
+presetly/
   links.py            ekstraksi & normalisasi link (unicode fancy, zero-width, URL kepotong, host lookalike)
   sources/youtube.py  search/channel (yt-dlp flat) + detail & komentar (innertube /next)
   sources/tiktok.py   profil, video, embed, komentar & balasan, hashtag live (Playwright)

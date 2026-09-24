@@ -1,6 +1,6 @@
 import pytest
 
-from amfinder import web
+from presetly import web
 
 
 @pytest.fixture()
@@ -74,3 +74,24 @@ def test_rate_limit(client):
         client.post("/api/list", json={"platform": "youtube", "query": ""})
     r = client.post("/api/list", json={"platform": "youtube", "query": ""})
     assert r.status_code == 429
+
+
+def test_api_404_is_json(client):
+    r = client.get("/api/gak-ada")
+    assert r.status_code == 404
+    assert r.is_json and "error" in r.get_json()
+
+
+def test_api_unhandled_is_json(client, monkeypatch):
+    def boom():
+        raise RuntimeError("meledak")
+
+    monkeypatch.setattr("presetly.web.feed.get_feed", boom)
+    r = client.get("/api/feed")
+    assert r.status_code == 500
+    assert r.is_json and r.get_json()["error"]
+
+
+def test_security_headers(client):
+    r = client.get("/api/health")
+    assert r.headers["Referrer-Policy"] == "no-referrer"

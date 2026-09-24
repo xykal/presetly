@@ -1,4 +1,4 @@
-"""Flask API. Di Vercel dijalanin lewat api/index.py, lokal lewat `python -m amfinder serve`."""
+"""Flask API. Di Vercel dijalanin lewat api/index.py, lokal lewat `python -m presetly serve`."""
 
 import io
 import os
@@ -6,6 +6,7 @@ import re
 import time
 
 from flask import Flask, Response, abort, jsonify, request, send_from_directory, stream_with_context
+from werkzeug.exceptions import HTTPException
 
 from . import __version__
 from .config import IS_SERVERLESS, MAX_SCAN_ITEMS
@@ -49,7 +50,7 @@ def _err(msg: str, code: int = 400):
 @app.after_request
 def _headers(resp):
     resp.headers.setdefault("X-Content-Type-Options", "nosniff")
-    resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    resp.headers.setdefault("Referrer-Policy", "no-referrer")
     if request.path.startswith("/api/") and "Cache-Control" not in resp.headers:
         resp.headers["Cache-Control"] = "no-store"
     return resp
@@ -58,6 +59,24 @@ def _headers(resp):
 @app.errorhandler(SourceError)
 def _source_error(e):
     return _err(str(e), 422)
+
+
+@app.errorhandler(404)
+def _not_found(e):
+    if request.path.startswith("/api/"):
+        return _err("Endpoint gak ketemu", 404)
+    return e
+
+
+@app.errorhandler(Exception)
+def _unhandled(e):
+    """Balikin JSON (bukan HTML 500) biar frontend gak bingung parse error."""
+    if isinstance(e, HTTPException):
+        if request.path.startswith("/api/"):
+            return _err(e.description or "Request gak valid", e.code)
+        return e
+    app.logger.exception("unhandled error on %s", request.path)
+    return _err("Server lagi error, coba lagi bentar", 500)
 
 
 @app.get("/api/health")
@@ -192,7 +211,7 @@ def api_yt_stream(vid):
         abort(400)
     if IS_SERVERLESS:
         return _err(
-            "Download YouTube cuma bisa di mode lokal (YouTube nge-block IP server). Jalanin: python -m amfinder serve", 501
+            "Download YouTube cuma bisa di mode lokal (YouTube nge-block IP server). Jalanin: python -m presetly serve", 501
         )
     url, headers = media.youtube_stream_source(vid)
     return _proxy(url, headers, f"youtube_{vid}.mp4")

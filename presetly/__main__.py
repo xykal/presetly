@@ -1,4 +1,4 @@
-"""CLI: python -m amfinder <perintah>
+"""CLI: python -m presetly <perintah>
 
 serve                              jalanin web lokal (http://localhost:8000)
 yt "preset am 5mb" [-n 20]         cari di YouTube
@@ -41,7 +41,7 @@ def _print(results: list[dict]):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(prog="amfinder", description="AM Preset Finder - Built-in XyVerse")
+    ap = argparse.ArgumentParser(prog="presetly", description="Presetly - Built-in XyVerse")
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("serve")
     s.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8000)))
@@ -62,7 +62,7 @@ def main(argv=None):
     if a.cmd == "serve":
         from .web import app
 
-        print(f"AM Preset Finder jalan di http://localhost:{a.port}")
+        print(f"Presetly jalan di http://localhost:{a.port}")
         app.run(host=a.host, port=a.port, threaded=True)
         return
     if a.cmd == "crawl":

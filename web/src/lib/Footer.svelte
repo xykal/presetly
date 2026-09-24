@@ -36,7 +36,7 @@
       <p class="muted disc">
         Gak berafiliasi sama Alight Motion, TikTok, atau YouTube. Semua preset milik creator masing-masing, jangan lupa kasih credit (cr) kalau dipake.
       </p>
-      <a class="gh" href="https://github.com/xykalnotkel/am-preset-finder" target="_blank" rel="noopener"><Icon name="github" size={16} />Source code</a>
+      <a class="gh" href="https://github.com/xykal/presetly" target="_blank" rel="noopener"><Icon name="github" size={16} />Source code</a>
     </div>
   </div>
 </footer>

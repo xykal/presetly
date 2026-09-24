@@ -2,10 +2,10 @@ import json
 
 import pytest
 
-from amfinder.services.resolver import parse_share_page
-from amfinder.services.scanner import classify, yt_playlist_url
-from amfinder.sources import tiktok, youtube
-from amfinder.util import SourceError
+from presetly.services.resolver import parse_share_page
+from presetly.services.scanner import classify, yt_playlist_url
+from presetly.sources import tiktok, youtube
+from presetly.util import SourceError
 
 SHARE_HTML = """
 <meta property="og:title" content="Kyoka_PRESET" />

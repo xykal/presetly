@@ -6,7 +6,7 @@ name: Crawl feed preset
 # Cron sengaja DIMATIIN: GitHub Additional Product Terms (Actions) ngelarang runner hosted
 # dipake buat aktivitas di luar "production, testing, deployment, or publication" project,
 # dan crawling data berkala itu area abu-abu. Jalanin manual seperlunya, atau lebih aman
-# jalanin di mesin sendiri: python -m amfinder crawl --out feed.json
+# jalanin di mesin sendiri: python -m presetly crawl --out feed.json
 on:
   workflow_dispatch:
     inputs:
@@ -48,7 +48,7 @@ jobs:
       - name: Crawl
         env:
           TAGS: ${{ github.event.inputs.tags || 'presetalightmotion,presetam,presetdibawah5mb,presetxml,alightmotionpreset,presetjedagjedug' }}
-        run: python -m amfinder crawl --out feed.json --tags "$TAGS" --per-tag 30
+        run: python -m presetly crawl --out feed.json --tags "$TAGS" --per-tag 30
 
       - name: Validasi feed
         run: |

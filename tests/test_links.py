@@ -1,4 +1,4 @@
-from amfinder.links import LinkBag, canon_file_url, extract_links, file_kind, host_matches, strip_truncated
+from presetly.links import LinkBag, canon_file_url, extract_links, file_kind, host_matches, strip_truncated
 
 
 def urls(text):

@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import { svelte, vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
-// Dev: `npm run dev` + `python -m amfinder serve --port 8000` -> /api di-proxy ke Flask.
+// Dev: `npm run dev` + `python -m presetly serve --port 8000` -> /api di-proxy ke Flask.
 export default defineConfig({
   root: 'web',
   publicDir: 'public',

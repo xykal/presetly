@@ -34,7 +34,7 @@
     <a class="brand" href="/" onclick={(e) => { e.preventDefault(); go('cari'); }}>
       <img src="/favicon.svg" alt="" width="32" height="32" />
       <div class="bt">
-        <b>AM Preset Finder</b>
+        <b>Presetly</b>
         <span><XyverseMark size={10} />Built-in XyVerse</span>
       </div>
     </a>
