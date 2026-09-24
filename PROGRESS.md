@@ -207,3 +207,12 @@ preview video bisa diputer, hosting gratis (Vercel / Cloudflare).
 ## 2026-09-24 — Mitigasi rate-limit Instagram
 
 - `_get` IG: throttle 0.9s antar-request (melindungi IP Vercel bersama), retry ronde 2 (napas 1.4s), lapis host www -> i.instagram.com. Tes unit simulasi host-A-403 → fallback host-B OK.
+
+## 2026-09-24 — Ekspedisi "lapis penembus" IG (hasil jujur)
+
+Yang dicoba (semuanya gak mempan buat IP cloud):
+- Dual/triple host fallback (www -> i.instagram.com -> api.instagram.com) — kerangkannya dipertahankan (bermanfaat untuk IP biasa/lokal).
+- Throttle + jitter acak; warm-up homepage; mobile-UA — kena 429 terus dari IP Vercel & sandbox.
+- Switch region Vercel sin1 -> iad1 (AWS US East) — tetap 429; dikembalikan ke sin1.
+- Relay antrean Supabase: kedua key 401 (project mati/rotated). Firebase RTDB: URL proyek gak bisa diverifikasi tanpa OAuth console.
+Kesimpulan: IG memblokir IP datacenter luas; tanpa session login / proxy residensial berbayar gak ada jalan bersih. Fitur IG tetap jalan dari IP rumahan (lokal) & link-tempel per reel; error sekarang ramah ("coba lagi 1-2 menit").
