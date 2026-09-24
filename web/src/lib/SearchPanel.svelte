@@ -4,7 +4,7 @@
   import { notify, runSearch, search, stopSearch, ui } from './state.svelte';
   import { recent, type RecentSearch } from './storage';
 
-  type Pf = 'youtube' | 'tiktok' | 'instagram' | 'link';
+  type Pf = 'multi' | 'youtube' | 'tiktok' | 'instagram' | 'link';
   let pf = $state<Pf>('youtube');
   let ytMode = $state<'search' | 'channel'>('search');
   let ttMode = $state<'hashtag' | 'profile'>('profile');
@@ -18,10 +18,15 @@
   let recents = $state<RecentSearch[]>(recent.all());
 
   const busy = $derived(search.status === 'listing' || search.status === 'scanning');
-  const mode = $derived(pf === 'youtube' ? ytMode : pf === 'tiktok' ? ttMode : pf === 'instagram' ? 'profile' : 'auto');
+  const mode = $derived(pf === 'youtube' ? ytMode : pf === 'tiktok' ? ttMode : pf === 'instagram' ? 'profile' : pf === 'multi' ? 'topik' : 'auto');
   const liveTag = $derived(!!ui.health?.hashtag_live);
 
   const CONF: Record<string, { ph: string; chips: string[]; note: string; limit: number }> = {
+    'multi:topik': {
+      ph: 'jedag jedug, anime edit, velocity, lagi viral…', limit: 28,
+      chips: ['jedag jedug', 'anime edit', 'velocity smooth', 'amv indo', 'lagu viral', 'transisi halus'],
+      note: 'Lapis penulusur: kata kunci kamu otomatis dipecah jadi beberapa query turunan ("preset am …", "… alight motion preset", dll) lalu digabung — temuannya jauh lebih luas dari pencarian biasa.',
+    },
     'youtube:search': {
       ph: 'preset alight motion jedag jedug', limit: 20,
       chips: ['preset alight motion', 'preset am dibawah 5mb', 'preset jedag jedug', 'preset xml alight motion', 'preset am kane', 'preset anime edit'],
@@ -76,7 +81,7 @@
     if (!qq) return;
     autoRan = true;
     const p2 = sp.get('pf') || 'youtube';
-    if (p2 === 'youtube' || p2 === 'tiktok' || p2 === 'instagram' || p2 === 'link') pf = p2;
+    if (p2 === 'youtube' || p2 === 'tiktok' || p2 === 'instagram' || p2 === 'link' || p2 === 'multi') pf = p2;
     const m = sp.get('mode') || '';
     if (pf === 'youtube' && (m === 'search' || m === 'channel')) ytMode = m;
     if (pf === 'tiktok' && (m === 'profile' || m === 'hashtag')) ttMode = m;
@@ -105,6 +110,9 @@
 
 <form class="panel card" onsubmit={submit}>
   <div class="tabs" role="tablist" aria-label="Sumber">
+    <button type="button" role="tab" aria-selected={pf === 'multi'} class:on={pf === 'multi'} onclick={() => (pf = 'multi')}>
+      <Icon name="sparkle" size={16} class="all" />Semua
+    </button>
     <button type="button" role="tab" aria-selected={pf === 'youtube'} class:on={pf === 'youtube'} onclick={() => (pf = 'youtube')}>
       <Icon name="youtube" size={17} class="yt" />YouTube
     </button>
@@ -121,7 +129,9 @@
 
   {#if pf !== 'link'}
     <div class="modes">
-      {#if pf === 'youtube'}
+      {#if pf === 'multi'}
+        <button type="button" class="chip on"><Icon name="sparkle" size={13} />Topik (lapis luas)</button>
+      {:else if pf === 'youtube'}
         <button type="button" class="chip" class:on={ytMode === 'search'} onclick={() => (ytMode = 'search')}><Icon name="search" size={13} />Keyword</button>
         <button type="button" class="chip" class:on={ytMode === 'channel'} onclick={() => (ytMode = 'channel')}><Icon name="user" size={13} />Channel</button>
       {:else if pf === 'tiktok'}
@@ -132,7 +142,7 @@
       {/if}
     </div>
     <div class="field">
-      <Icon name={pf === 'tiktok' && ttMode === 'hashtag' ? 'hash' : pf === 'instagram' || pf === 'tiktok' || ytMode === 'channel' ? 'user' : 'search'} size={18} class="lead" />
+      <Icon name={pf === 'multi' ? 'sparkle' : pf === 'tiktok' && ttMode === 'hashtag' ? 'hash' : pf === 'instagram' || pf === 'tiktok' || ytMode === 'channel' ? 'user' : 'search'} size={18} class="lead" />
       <input class="input" bind:value={query} placeholder={conf.ph} autocomplete="off" enterkeyhint="search" aria-label="Kata kunci" />
     </div>
   {:else}
@@ -253,6 +263,9 @@
   }
   .field {
     position: relative;
+  }
+  .tabs :global(.all) {
+    color: var(--brand);
   }
   .field :global(.lead) {
     position: absolute;

@@ -112,6 +112,13 @@ def build_list(p: dict) -> dict:
                     from_embed = []
                 items = from_feed + from_embed
                 notes.append(f"hashtag-lite:{len(from_feed)}:{len(from_embed)}")
+    elif platform == "multi":
+        # Lapis penulusur: 1 topik dipecah jadi beberapa lapis query lintas pola
+        # penulisan creator, digabung + dedup. Saat ini di atas mesin YouTube.
+        from ..sources import multi
+
+        items, lane_notes = multi.topik(query, limit)
+        notes.extend(lane_notes)
     elif platform == "instagram":
         # IG gak punya search/hashtag publik -> fokus: profil creator (username / URL).
         prof, recs = instagram.profile(query, limit)

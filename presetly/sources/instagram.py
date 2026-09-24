@@ -19,6 +19,7 @@ from ..links import LinkBag, host_matches
 from ..util import SourceError, to_int
 
 API = "https://www.instagram.com/api/v1"
+API2 = "https://i.instagram.com/api/v1"  # lapis cadangan (host mobile, WAF beda)
 APP_ID = "936619743392459"  # app id web publik Instagram (dipake klien web resmi)
 RE_IG_URL = re.compile(r"(?:https?://)?(?:www\.)?instagram\.com/(?:[\w.\-]+/)?(reel|reels|p|tv)/([A-Za-z0-9_-]{5,24})", re.I)
 RE_IG_USER = re.compile(r"(?:https?://)?(?:www\.)?instagram\.com/([\w.\-]+)/?$", re.I)
@@ -37,18 +38,27 @@ def short_to_media_id(code: str) -> int:
 
 
 def _get(path: str, params: dict | None = None) -> dict:
-    r = session().get(
-        API + path,
-        params=params,
-        headers={"x-ig-app-id": APP_ID, "Accept": "*/*"},
-        timeout=HTTP_TIMEOUT,
-    )
-    if r.status_code != 200:
-        raise SourceError(f"Instagram nolak request (HTTP {r.status_code})")
-    try:
-        return r.json()
-    except ValueError as e:
-        raise SourceError("Respons Instagram gak valid") from e
+    # Lapis penembus: coba www.instagram.com dulu; kalau ditolak (blokir IP cloud /
+    # rate-limit 429/403), jatuh ke host mobile i.instagram.com (jalur API sama,
+    # WAF-nya beda aturan). Kedua host resmi milik Instagram.
+    last: SourceError | None = None
+    for base in (API, API2):
+        r = session().get(
+            base + path,
+            params=params,
+            headers={"x-ig-app-id": APP_ID, "Accept": "*/*"},
+            timeout=HTTP_TIMEOUT,
+        )
+        if r.status_code != 200:
+            last = SourceError(f"Instagram nolak request (HTTP {r.status_code})")
+            continue
+        try:
+            return r.json()
+        except ValueError:
+            last = SourceError("Respons Instagram gak valid")
+            continue
+    assert last is not None
+    raise last
 
 
 def parse_url(url: str) -> tuple[str | None, str | None, str | None]:

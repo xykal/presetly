@@ -307,3 +307,17 @@ def test_tiktok_clean_play_picks_no_watermark():
     assert clean_play(wm) == wm  # cuma varian wm -> tetap dipake (daripada nihil)
     assert clean_play([]) is None
     assert clean_play(None) is None
+
+
+def test_multi_lanes_expand_and_dedup():
+    from presetly.sources.multi import lanes
+
+    ls = lanes("jedag jedug")
+    assert ls[0] == "jedag jedug"
+    assert len(ls) >= 3
+    assert len(set(s.lower() for s in ls)) == len(ls)
+    # query yang udah ngandung 'preset' gak boleh dobelin suffix preset
+    ls2 = lanes("preset alight motion")
+    assert ls2[0] == "preset alight motion"
+    assert all(lane.lower() != "preset alight motion preset alight motion" for lane in ls2)
+    assert lanes("  ") == []

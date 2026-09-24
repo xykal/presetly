@@ -189,3 +189,17 @@ preview video bisa diputer, hosting gratis (Vercel / Cloudflare).
 - Nonaktifkan Vercel Deployment Protection (ssoProtection all_except_custom_domains → null) via API supaya URL *.vercel.app bisa diakses publik tanpa login.
 - Deploy prod batch 2: presetlyapp-6ud2k0uc0… ✅ Ready 33s. Bundle live `index-B6Ljw401.js` di presetlyapp.vercel.app + presetly.xyverse.my.id; route IG aktif; push config aktif.
 - Catatan: GitHub push masih tertahan (token PAKAI INI = akun xykalnotkel, tanpa akses tulis ke xykal) — menunggu invite collaborator xykalnotkel di xykal/am-preset-finder atau PAT baru dari akun xykal.
+
+## 2026-09-24 — Wave 3: Migrasi GitHub selesai + lapis penembus & pencarian luas
+
+**GitHub (token akun `xykal` dari itu-buatkerja.txt):**
+- Push 12+ commit: merge `-s ours` origin/main (4189b03 referensi akun) — riwayat lama tetap, konten pakai Presetly v2.1. Push sukses.
+- Rename repo → **github.com/xykal/presetly** (home presetly.xyverse.my.id, deskripsi baru, redirect URL lama 301 ke nama baru).
+- Repo secrets Actions terpasang: VERCEL_TOKEN / VERCEL_ORG_ID / VERCEL_PROJECT_ID (libsodium encrypted).
+- Workflow deploy disederhanakan (source deploy langsung; alur prebuilt sebelumnya kena "uv not found" lalu "readlink PROGRESS.md" di runner Actions). CI ✅, Deploy ✅.
+
+**Lapis penembus (user: "tambah beberapa lapis penembus"):**
+- Instagram dual-host fallback: www.instagram.com wajar → gagal/429 → i.instagram.com (host mobile resmi, WAF beda) — dipakai semua endpoint profil/media/oembed.
+- Baru `presetly/sources/multi.py` — "lapis penulusur": query dipecah jadi beberapa turunan (preset am / alight motion preset / template am / xml preset) dijalanin paralel via ThreadPool + dedup + urut lapis persis dulu. Scanner platform `multi`, UI tab baru **Semua** (topik), URL shareable mendukung pf=multi.
+
+**QA:** ruff clean · 58 pytest · svelte-check 0/0 · build sukses (bundle ~41KB gzip).

@@ -1,4 +1,4 @@
-export type Platform = 'youtube' | 'tiktok' | 'instagram' | 'link';
+export type Platform = 'youtube' | 'tiktok' | 'instagram' | 'multi' | 'link';
 export type NativePlatform = 'youtube' | 'tiktok' | 'instagram';
 export type LinkType = 'am' | 'xml' | 'other';
 export type FileKind = 'xml' | 'zip' | 'sound' | 'folder' | 'video' | 'image' | 'apk' | 'file';
