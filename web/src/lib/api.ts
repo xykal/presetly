@@ -59,6 +59,10 @@ export const api = {
   mediaOf: (p: Platform, id: string) => (p === 'instagram' ? api.igMedia(id) : api.ttMedia(id)),
   ttMedia: (id: string) => call<{ play: string | null; proxy: string; thumb: string | null }>(`/api/media/tiktok/${id}`),
   igMedia: (code: string) => call<{ play: string | null; proxy: string; thumb: string | null }>(`/api/media/instagram/${code}`),
+  pushConfig: () => call<{ enabled: boolean; vapid: string | null }>('/api/push/config'),
+  pushSubscribe: (json: { endpoint: string; keys: { p256dh: string; auth: string }; creators: string[] }) =>
+    call<{ ok: boolean }>('/api/push/subscribe', { json }),
+  pushUnsubscribe: (endpoint: string) => call<{ ok: boolean }>('/api/push/unsubscribe', { json: { endpoint } }),
 };
 
 export async function exportCsv(results: ScanResult[]) {

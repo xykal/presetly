@@ -12,6 +12,7 @@ dependencies = [
   "requests>=2.32",
   "yt-dlp[default]>=2026.8.19",
   "segno>=1.6",
+  "pywebpush>=2.0",
 ]
 
 [project.optional-dependencies]

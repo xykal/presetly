@@ -2,13 +2,74 @@
   import Icon from './Icon.svelte';
   import PresetCard from './PresetCard.svelte';
   import { FREE_MB } from './format';
-  import { ui } from './state.svelte';
+  import { disablePush, enablePush, loadPush, setCreators } from './notify';
+  import { notify, ui } from './state.svelte';
   import { saved } from './storage';
   import type { Preset } from './types';
 
   let items = $state<Preset[]>(saved.all());
   let q = $state('');
   let onlyFree = $state(false);
+
+  // --- notifikasi preset baru ---
+  let pushOn = $state(false);
+  let creators = $state<string[]>([]);
+  let newCreator = $state('');
+  let pushBusy = $state(false);
+
+  $effect(() => {
+    const s = loadPush();
+    pushOn = s.on;
+    creators = s.creators;
+  });
+
+  async function togglePush() {
+    pushBusy = true;
+    try {
+      if (pushOn) {
+        await disablePush();
+        pushOn = false;
+        notify('Notifikasi dimatikan', 'info');
+      } else {
+        await enablePush(creators);
+        pushOn = true;
+        notify('Notifikasi preset baru AKTIF 🔔', 'ok');
+      }
+    } catch (e) {
+      notify(e instanceof Error ? e.message : 'Gagal nyalain notifikasi', 'bad');
+    } finally {
+      pushBusy = false;
+    }
+  }
+
+  function addCreator() {
+    let c = newCreator.trim().toLowerCase().replace(/^@/, '');
+    if (!c) return;
+    if (!c.includes(':')) c = 'tiktok:' + c;
+    const [pf, handle] = c.split(':');
+    if (!['youtube', 'yt', 'tiktok', 'tt', 'instagram', 'ig'].includes(pf) || !handle) {
+      notify('Format: youtube:@user / tiktok:user / instagram:user', 'bad');
+      return;
+    }
+    if (creators.includes(c)) {
+      notify('Udah dipantau', 'info');
+      return;
+    }
+    const next = [...creators, c];
+    creators = next;
+    newCreator = '';
+    setCreators(next).catch(() => {});
+  }
+
+  async function removeCreator(c: string) {
+    const next = creators.filter((x) => x !== c);
+    creators = next;
+    try {
+      await setCreators(next);
+    } catch {
+      /* ignore */
+    }
+  }
 
   const list = $derived(
     items.filter((p) => {
@@ -32,6 +93,39 @@
     <h1>Koleksi</h1>
     <p class="muted">Preset yang lu simpen (ikon bookmark di tab Jelajah). Disimpen di browser ini aja, gak perlu login.</p>
   </div>
+
+  <section class="notif card">
+    <div class="nrow">
+      <Icon name="sparkle" size={18} />
+      <div class="ntxt">
+        <b>Notifikasi preset baru</b>
+        <span class="muted">Dikabari pas creator favorit posting (dicek berkala). Tanpa login.</span>
+      </div>
+      <button class="btn sm {pushOn ? 'primary' : ''}" disabled={pushBusy} onclick={togglePush}>
+        {pushOn ? 'Aktif 🔔' : 'Nyalain'}
+      </button>
+    </div>
+    <div class="pantau">
+      <div class="field">
+        <Icon name="user" size={15} class="lead" />
+        <input
+          class="input"
+          bind:value={newCreator}
+          placeholder="youtube:@user / tiktok:user / instagram:user"
+          aria-label="Creator yang dipantau"
+          onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), addCreator())}
+        />
+      </div>
+      <button class="btn sm" onclick={addCreator}><Icon name="bookmark" size={14} />Pantau</button>
+    </div>
+    {#if creators.length}
+      <div class="clist">
+        {#each creators as c (c)}
+          <span class="chip on">{c}<button class="x" aria-label="Berhenti pantau {c}" onclick={() => removeCreator(c)}><Icon name="x" size={11} /></button></span>
+        {/each}
+      </div>
+    {/if}
+  </section>
 
   {#if items.length}
     <div class="toolbar">
@@ -120,5 +214,58 @@
     gap: 12px;
     text-align: center;
     color: var(--muted);
+  }
+  .notif {
+    margin-bottom: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .nrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ntxt {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .ntxt b {
+    font-size: 14px;
+  }
+  .ntxt .muted {
+    font-size: 12px;
+  }
+  .pantau {
+    display: flex;
+    gap: 8px;
+  }
+  .pantau .field {
+    flex: 1;
+  }
+  .clist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .clist .chip {
+    gap: 6px;
+    padding-right: 6px;
+  }
+  .clist .x {
+    border: 0;
+    background: none;
+    color: inherit;
+    display: grid;
+    place-items: center;
+    padding: 2px;
+    border-radius: 50%;
+  }
+  .clist .x:hover {
+    background: rgba(255, 255, 255, 0.15);
   }
 </style>

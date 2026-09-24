@@ -95,3 +95,32 @@ def test_api_unhandled_is_json(client, monkeypatch):
 def test_security_headers(client):
     r = client.get("/api/health")
     assert r.headers["Referrer-Policy"] == "no-referrer"
+
+
+def test_push_endpoints_validation(client, monkeypatch):
+    monkeypatch.setattr("presetly.push.D1_TOKEN", "")  # push nonaktif
+    r = client.get("/api/push/config")
+    assert r.status_code == 200 and r.get_json()["enabled"] is False
+    r = client.post("/api/push/subscribe", json={"endpoint": "https://x", "keys": {}})
+    assert r.status_code == 503
+
+    monkeypatch.setattr("presetly.push.D1_TOKEN", "x")
+    monkeypatch.setattr("presetly.push.VAPID_PRIV", "x")
+    monkeypatch.setattr("presetly.push.VAPID_PUB", "x")
+    r = client.post("/api/push/subscribe", json={"endpoint": "http://jelek", "keys": {"p256dh": "a", "auth": "b"}})
+    assert r.status_code == 400
+    r = client.post("/api/push/subscribe", json={"endpoint": "https://ok", "keys": {"p256dh": "a"}, "creators": "x"})
+    assert r.status_code == 400
+    r = client.post("/api/push/unsubscribe", json={})
+    assert r.status_code == 400
+
+    monkeypatch.setattr("presetly.push.PUSH_SECRET", "rahasia")
+    assert client.post("/api/push/run").status_code == 403
+    assert client.post("/api/push/run", headers={"X-Presetly-Secret": "salah"}).status_code == 403
+
+
+def test_push_norm_creators():
+    from presetly.push import _norm_creators
+
+    got = _norm_creators(["@Dan_Newbie", "yt:@StwGguk", "ig:kreator.am", "tiktok:dan_newbie", "fb:x", "youtube:@StwGguk"])
+    assert got == ["tiktok:dan_newbie", "youtube:@stwgguk", "instagram:kreator.am"]

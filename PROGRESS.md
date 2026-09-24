@@ -137,3 +137,13 @@ preview video bisa diputer, hosting gratis (Vercel / Cloudflare).
   `PRESETLY_D1_TOKEN` di Vercel -> idealnya ganti token scoped khusus D1 nanti.
 
 **Next Step (lanjutan sesi ini):** notifikasi preset baru (Web Push + VAPID + D1), auto-deploy Vercel dari GitHub.
+
+**Update (sesi sama): notifikasi preset baru (Web Push) - DONE:**
+- `presetly/push.py`: Web Push standar (VAPID SECP256R1) + Cloudflare D1 (tabel subs/seen) sebagai penyimpanan langganan.
+  Endpoints: `/api/push/config|subscribe|unsubscribe|run` (run butuh header X-Presetly-Secret).
+- Pemicu: otomatis pas `/api/feed` bangun live feed (throttle 30 menit global) + `POST /api/push/run` buat cron.
+  Video creator yang dipantau dicek (maks 10 creator x 3 video per giliran, round-robin) -> yang punya postingan baru
+  dikabari; konten > 48 jam ditandai seen tanpa push (anti banjir). Langganan mati (404/410) auto dibuang.
+- Frontend: panel "Notifikasi preset baru" di tab Koleksi (toggle + pantau creator `youtube:@user / tiktok:user /
+  instagram:user`), `sw.js` (push + notificationclick), state di localStorage.
+- Env produksi: PRESETLY_D1_TOKEN (Cloudflare), PRESETLY_VAPID_PUB/PRIV, PRESETLY_PUSH_SECRET (lihat .env.example).

@@ -50,7 +50,19 @@ def live_feed() -> dict:
         with _LOCK:
             if data and data.get("items"):
                 _LIVE.update(at=time.time(), data=data)
+            threading.Thread(target=_maybe_push, daemon=True).start()
             return _LIVE["data"] or _EMPTY
+
+
+def _maybe_push():
+    """Sambil live feed dibangun, cek postingan baru creator yang dipantau (throttle di push.py)."""
+    try:
+        from .. import push
+
+        if push.enabled():
+            push.check_and_notify()
+    except Exception:  # noqa: S110 - notifikasi boleh gagal tanpa ngerusak feed
+        pass
 
 
 def get_feed() -> dict:

@@ -8,7 +8,7 @@ import time
 from flask import Flask, Response, abort, jsonify, request, send_from_directory, stream_with_context
 from werkzeug.exceptions import HTTPException
 
-from . import __version__
+from . import __version__, push
 from .config import IS_SERVERLESS, MAX_SCAN_ITEMS
 from .links import extract_links
 from .services import feed, media, resolver, scanner
@@ -251,6 +251,51 @@ def api_ig_stream(code):
     dl = request.args.get("dl")
     user = re.sub(r"[^\\w.\\-]", "", request.args.get("u", ""))[:40] or "instagram"
     return _proxy(url, headers, f"{user}_{code}.mp4" if dl else None)
+
+
+@app.get("/api/push/config")
+def api_push_config():
+    return jsonify(enabled=push.enabled(), vapid=push.VAPID_PUB if push.enabled() else None)
+
+
+@app.post("/api/push/subscribe")
+def api_push_subscribe():
+    if not push.enabled():
+        return _err("Notifikasi belum aktif di server", 503)
+    if _rate_limited("push", 30):
+        return _err("Kebanyakan request, tunggu semenit ya", 429)
+    p = request.get_json(force=True, silent=True) or {}
+    endpoint = str(p.get("endpoint") or "")[:2000]
+    keys = p.get("keys") or {}
+    if not endpoint.startswith("https://") or not keys.get("p256dh") or not keys.get("auth"):
+        return _err("Langganan push gak valid")
+    creators = p.get("creators")
+    if creators is not None and not isinstance(creators, list):
+        return _err("creators harus berupa list")
+    push.subscribe(endpoint, str(keys.get("p256dh"))[:500], str(keys.get("auth"))[:500], creators or [])
+    return jsonify(ok=True)
+
+
+@app.post("/api/push/unsubscribe")
+def api_push_unsubscribe():
+    p = request.get_json(force=True, silent=True) or {}
+    endpoint = str(p.get("endpoint") or "")[:2000]
+    if not endpoint:
+        return _err("endpoint kosong")
+    try:
+        push.unsubscribe(endpoint)
+    except RuntimeError:
+        pass
+    return jsonify(ok=True)
+
+
+@app.post("/api/push/run")
+def api_push_run():
+    """Pemicu eksternal (cron / manual). Butuh header X-Presetly-Secret == PRESETLY_PUSH_SECRET."""
+    secret = request.headers.get("x-presetly-secret", "")
+    if not push.PUSH_SECRET or secret != push.PUSH_SECRET:
+        return _err("Ditolak", 403)
+    return jsonify(push.check_and_notify(force=True))
 
 
 @app.get("/api/feed")
