@@ -147,3 +147,15 @@ preview video bisa diputer, hosting gratis (Vercel / Cloudflare).
 - Frontend: panel "Notifikasi preset baru" di tab Koleksi (toggle + pantau creator `youtube:@user / tiktok:user /
   instagram:user`), `sw.js` (push + notificationclick), state di localStorage.
 - Env produksi: PRESETLY_D1_TOKEN (Cloudflare), PRESETLY_VAPID_PUB/PRIV, PRESETLY_PUSH_SECRET (lihat .env.example).
+
+**Update (sesi sama): deploy + domain - DONE:**
+- Project Vercel `am-preset-finder` di-rename -> `presetlyapp` (akun Vercel xykalnotkel, prj_ySCUpQrMJ8t7TQpKQOrtJq6HJOih).
+  Domain produksi: **https://presetly.xyverse.my.id** (custom domain, CNAME ke cname.vercel-assist.com di zone Cloudflare
+  xyverse.my.id, mode DNS-only) + fallback presetlyapp.vercel.app + am-preset-finder.vercel.app (link lama tetap hidup).
+  Catatan: `presetly.vercel.app` udah keburu dipakai project orang lain (Lightroom Preset Generator) - nama *.vercel.app global.
+- Env produksi terpasang (7): PRESETLY_D1_TOKEN/ACCOUNT/DB, PRESETLY_VAPID_PUB/PRIV/SUB, PRESETLY_PUSH_SECRET.
+- Deploy via Vercel CLI (token vcp_). Workflow `.github/workflows/deploy.yml` siap buat auto-deploy dari GitHub Actions
+  (butuh repo secrets VERCEL_TOKEN/VERCEL_ORG_ID/VERCEL_PROJECT_ID) sampai Vercel GitHub App ke-install.
+- Status GitHub (2026-09-24): akun BARU `xykal` (TerserahKal, CEO XyVerse) = rumah repo `xykal/am-preset-finder` (ada commit
+  migrasi "alihkan referensi akun xykalnotkel -> xykal"). Token di kuncikerjasama = akun LAMA `xykalnotkel` (admin penuh di
+  `xykalnotkel/am-preset-finder`, read-only di repo xykal). Push/rename ke `xykal/presetly` nunggu kredensial/collab akun xykal.
