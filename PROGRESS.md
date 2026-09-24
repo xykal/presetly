@@ -203,3 +203,7 @@ preview video bisa diputer, hosting gratis (Vercel / Cloudflare).
 - Baru `presetly/sources/multi.py` — "lapis penulusur": query dipecah jadi beberapa turunan (preset am / alight motion preset / template am / xml preset) dijalanin paralel via ThreadPool + dedup + urut lapis persis dulu. Scanner platform `multi`, UI tab baru **Semua** (topik), URL shareable mendukung pf=multi.
 
 **QA:** ruff clean · 58 pytest · svelte-check 0/0 · build sukses (bundle ~41KB gzip).
+
+## 2026-09-24 — Mitigasi rate-limit Instagram
+
+- `_get` IG: throttle 0.9s antar-request (melindungi IP Vercel bersama), retry ronde 2 (napas 1.4s), lapis host www -> i.instagram.com. Tes unit simulasi host-A-403 → fallback host-B OK.

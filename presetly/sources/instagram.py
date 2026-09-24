@@ -10,6 +10,7 @@ buat dapetin video_url segar. Kalau ketuaan / gak ketemu, preview jatuh ke ifram
 
 import html
 import re
+import threading
 import time
 import urllib.parse
 
@@ -37,26 +38,43 @@ def short_to_media_id(code: str) -> int:
     return n
 
 
+_REQ_LOCK = threading.Lock()
+_REQ_AT = [0.0]
+
+
+def _throttle() -> None:
+    """Jarak minimal antar-request IG (0.9s) — IP cloud itu dipake bareng, jadi
+    pelan-pelan biar gak kebaca bot + kerja bersih."""
+    with _REQ_LOCK:
+        wait = 0.9 - (time.time() - _REQ_AT[0])
+        if wait > 0:
+            time.sleep(wait)
+        _REQ_AT[0] = time.time()
+
+
 def _get(path: str, params: dict | None = None) -> dict:
-    # Lapis penembus: coba www.instagram.com dulu; kalau ditolak (blokir IP cloud /
-    # rate-limit 429/403), jatuh ke host mobile i.instagram.com (jalur API sama,
-    # WAF-nya beda aturan). Kedua host resmi milik Instagram.
+    # Lapis penembus + anti rate-limit:
+    #   ronde 1: www -> gagal/429 -> i.instagram.com (host mobile resmi, WAF beda)
+    #   ronde 2: napas 1.4s dulu, coba dua host lagi (rate-limit biasanya lepas cepat)
     last: SourceError | None = None
-    for base in (API, API2):
-        r = session().get(
-            base + path,
-            params=params,
-            headers={"x-ig-app-id": APP_ID, "Accept": "*/*"},
-            timeout=HTTP_TIMEOUT,
-        )
-        if r.status_code != 200:
+    for ronde in range(2):
+        for base in (API, API2):
+            _throttle()
+            r = session().get(
+                base + path,
+                params=params,
+                headers={"x-ig-app-id": APP_ID, "Accept": "*/*"},
+                timeout=HTTP_TIMEOUT,
+            )
+            if r.status_code == 200:
+                try:
+                    return r.json()
+                except ValueError:
+                    last = SourceError("Respons Instagram gak valid")
+                    continue
             last = SourceError(f"Instagram nolak request (HTTP {r.status_code})")
-            continue
-        try:
-            return r.json()
-        except ValueError:
-            last = SourceError("Respons Instagram gak valid")
-            continue
+        if ronde == 0:
+            time.sleep(1.4)
     assert last is not None
     raise last
 
